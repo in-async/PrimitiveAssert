@@ -27,12 +27,16 @@ namespace Inasync {
             return _value.ToString();
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is Numeric numeric && Equals(numeric);
         }
 
         public bool Equals(Numeric other) {
             return ToString().Equals(other.ToString());
+        }
+
+        public override int GetHashCode() {
+            return -1939223833 + ToString().GetHashCode();
         }
     }
 }

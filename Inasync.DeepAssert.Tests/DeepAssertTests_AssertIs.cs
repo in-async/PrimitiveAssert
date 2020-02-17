@@ -6,79 +6,62 @@ namespace Inasync.Tests {
     [TestClass]
     public class DeepAssertTests_AssertIs {
 
-        private static Action TestCase(int testNo, object? x, object? y, Type? expectedException = null) => () => {
+        private static Action TestCase(int testNo, Type? target, object? x, object? y, Type? expectedException = null) => () => {
             TestAA
-                .Act(() => x.AssertIs(y, message: $"No.{testNo}_a"))
+                .Act(() => DeepAssert.AssertIs(new DeepAssertArgs(target, x, y, path: ""), message: $"No.{testNo}_a"))
                 .Assert(expectedException, message: $"No.{testNo}_a");
 
             TestAA
-                .Act(() => y.AssertIs(x, message: $"No.{testNo}_b"))
+                .Act(() => DeepAssert.AssertIs(new DeepAssertArgs(target, y, x, path: ""), message: $"No.{testNo}_b"))
                 .Assert(expectedException, message: $"No.{testNo}_b");
         };
 
         [TestMethod]
         public void AssertIs_Null() {
             new[] {
-                TestCase( 0, null, null      ),
-                TestCase( 1, null, (int?)null),
-                TestCase( 2, null, 1         , expectedException: typeof(AssertIsFailedException)),
-                TestCase( 3, null, ""        , expectedException: typeof(AssertIsFailedException)),
+                TestCase( 0, target: null        , x: null, y: null),
+                TestCase( 1, target: null        , x: null, y: 1   , expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 2, target: null        , x: 1   , y: 1   , expectedException: typeof(DeepAssertFailedException)),
+                TestCase(10, target: typeof(int?), x: null, y: null),
+                TestCase(11, target: typeof(int?), x: null, y: 1   , expectedException: typeof(DeepAssertFailedException)),
+                TestCase(12, target: typeof(int?), x: 1   , y: 1   ),
             }.Invoke();
         }
 
         [TestMethod]
-        public void AssertIs_Int() {
+        public void AssertIs_Numeric() {
             new[] {
-                TestCase( 0, 1, 1      ),
-                TestCase( 1, 1, (int?)1),
-                TestCase( 2, 1, (byte)1),
-                TestCase( 3, 1, 1L     ),
-                TestCase( 4, 1, 1M     ),
-                TestCase( 5, 1, 1D     ),
-                TestCase( 6, 1, ""     , expectedException: typeof(AssertIsFailedException)),
-                TestCase( 7, 1, 1.1    , expectedException: typeof(AssertIsFailedException)),
+                TestCase( 0, target: typeof(int)    , x: 1   , y: 1   ),
+                TestCase( 1, target: typeof(int)    , x: 1   , y: 1.1m, expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 2, target: typeof(int)    , x: 1.1d, y: 1.1m),
+                TestCase( 3, target: typeof(int)    , x: 1   , y: ""  , expectedException: typeof(DeepAssertFailedException)),
+                TestCase(10, target: typeof(double) , x: 1   , y: 1.0m),
+                TestCase(20, target: typeof(decimal), x: 1m  , y: 1.0m),
             }.Invoke();
         }
 
         [TestMethod]
-        public void AssertIs_Double() {
-            new[] {
-                TestCase( 0, 1d, 1d        ),
-                TestCase( 1, 1d, 1.0d      ),
-                TestCase( 2, 1d, (double?)1),
-                TestCase( 3, 1d, 1         ),
-                TestCase( 4, 1d, ""        , expectedException: typeof(AssertIsFailedException)),
-            }.Invoke();
-        }
-
-        [TestMethod]
-        public void AssertIs_Decimal() {
-            new[] {
-                TestCase( 0, 1m, 1m         ),
-                TestCase( 1, 1m, 1.0m       ),
-                TestCase( 2, 1m, (decimal?)1),
-                TestCase( 3, 1m, 1          ),
-                TestCase( 4, 1m, ""         , expectedException: typeof(AssertIsFailedException)),
-                TestCase( 5, 1m, 1.1        , expectedException: typeof(AssertIsFailedException)),
-            }.Invoke();
-        }
-
-        [TestMethod]
-        public void AssertIs_Guid() {
+        public void AssertIs_PrimitiveData() {
             var guidStr1 = "15b63bc6-9876-4e07-8400-f06daf3e4212";
             var guidStr2 = "25b63bc6-9876-4e07-8400-f06daf3e4212";
-            var guid = Guid.Parse(guidStr1);
+            var guid1 = Guid.Parse(guidStr1);
             new[] {
-                TestCase( 0, guid, guid                ),
-                TestCase( 1, guid, Guid.Parse(guidStr1)),
-                TestCase( 2, guid, Guid.Parse(guidStr2), expectedException: typeof(AssertIsFailedException)),
-                TestCase( 3, guid, guidStr1            , expectedException: typeof(AssertIsFailedException)),
+                TestCase( 0, target: typeof(Guid)  , x: guid1, y: Guid.Parse(guidStr1)),
+                TestCase( 1, target: typeof(Guid)  , x: guid1, y: Guid.Parse(guidStr2), expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 2, target: typeof(Guid)  , x: guid1, y: guidStr1            , expectedException: typeof(DeepAssertFailedException)),
+                TestCase(10, target: typeof(object), x: guid1, y: Guid.Parse(guidStr1)),
+                TestCase(11, target: typeof(string), x: guid1, y: Guid.Parse(guidStr1), expectedException: typeof(DeepAssertFailedException)),
             }.Invoke();
         }
 
         [TestMethod]
-        public void AssertIs_UserObject() {
-            var actual = new {
+        public void AssertIs_Collection() {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void AssertIs_CompositeData() {
+            var x = new {
                 AccountId = new Guid("f5b63bc6-9876-4e07-8400-f06daf3e4212"),
                 FullName = "John Smith",
                 Age = 20,
@@ -89,15 +72,16 @@ namespace Inasync.Tests {
                 Tags = new[] {
                     new{ Text = "Tag 1" },
                     new{ Text = "Tag 2" },
+                    null,
                 },
                 Rank = 'A',
                 Remarks = (string?)null,
                 Params1 = (foo: 1, bar: "bar"),
                 Params2 = (ValueTuple<int, string>?)null,
                 Params3 = Tuple.Create(1, "bar"),
-                LastError = typeof(ApplicationException),
+                LastError = new ApplicationException(),
             };
-            var expected = new {
+            var y = new {
                 AccountId = new Guid("f5b63bc6-9876-4e07-8400-f06daf3e4212"),
                 FullName = "John Smith",
                 Age = 20,
@@ -108,16 +92,17 @@ namespace Inasync.Tests {
                 Tags = new[] {
                     new{ Text = "Tag 1" },
                     new{ Text = "Tag 2" },
+                    null,
                 },
                 Rank = 'A',
                 Remarks = (string?)null,
                 Params1 = (foo: 1, bar: "bar"),
                 Params2 = (ValueTuple<int, string>?)null,
                 Params3 = Tuple.Create(1, "bar"),
-                LastError = typeof(ApplicationException),
+                LastError = new ApplicationException(),
             };
 
-            TestCase(0, actual, expected)();
+            TestCase(0, target: x.GetType(), x: x, y: y)();
         }
     }
 }

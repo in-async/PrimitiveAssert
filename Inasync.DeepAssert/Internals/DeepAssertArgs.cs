@@ -2,13 +2,13 @@
 
 namespace Inasync {
 
-    internal readonly struct AssertIsArgs {
+    internal readonly struct DeepAssertArgs {
         public readonly Type? TargetType;
         public readonly object? Actual;
         public readonly object? Expected;
         public readonly string Path;
 
-        public AssertIsArgs(Type? targetType, object? actual, object? expected, string path) {
+        public DeepAssertArgs(Type? targetType, object? actual, object? expected, string path) {
             TargetType = targetType;
             Actual = actual;
             Expected = expected;

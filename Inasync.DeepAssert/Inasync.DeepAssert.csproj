@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Inasync</RootNamespace>
     <Authors>inasync</Authors>
-    <Description></Description>
+    <Description>A simple library that decomposes targets into primitive data types and asserts them.</Description>
     <PackageProjectUrl>https://github.com/in-async/DeepAssert</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/in-async/DeepAssert/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>library test unittest assert</PackageTags>
