@@ -9,7 +9,7 @@ namespace Inasync {
     /// <summary>
     /// ターゲットを基本データ型に分解して比較します。
     /// </summary>
-    public static class DeepAssert {
+    public static class PrimitiveAssert {
 
         /// <summary>
         /// <paramref name="actual"/> のランタイム型を比較の基準とし、
@@ -18,7 +18,7 @@ namespace Inasync {
         /// <param name="actual">検証対象の実値。</param>
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
-        /// <exception cref="DeepAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
+        /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs(this object? actual, object? expected, string? message = null) {
             AssertIs(new AssertNode(name: "", actual?.GetType(), actual, expected, parent: null), message);
         }
@@ -31,7 +31,7 @@ namespace Inasync {
         /// <param name="actual">検証対象の実値。</param>
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
-        /// <exception cref="DeepAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
+        /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs<TTarget>(this object? actual, object? expected, string? message = null) {
             AssertIs(new AssertNode(name: "", targetType: typeof(TTarget), actual, expected, parent: null), message);
         }
@@ -41,8 +41,8 @@ namespace Inasync {
 
             // null 比較
             if (targetType is null) {
-                if (!(actual is null)) { throw new DeepAssertFailedException(node, $"ターゲット型は null ですが、actual は非 null です。", message); }
-                if (!(expected is null)) { throw new DeepAssertFailedException(node, $"ターゲット型は null ですが、expected は非 null です。", message); }
+                if (!(actual is null)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は null ですが、actual は非 null です。", message); }
+                if (!(expected is null)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は null ですが、expected は非 null です。", message); }
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
@@ -54,10 +54,10 @@ namespace Inasync {
                     Debug.WriteLine(node);
                     return;
                 }
-                else { throw new DeepAssertFailedException(node, $"actual は null だが、expected が非 null。", message); }
+                else { throw new PrimitiveAssertFailedException(node, $"actual は null だが、expected が非 null。", message); }
             }
             else {
-                if (expected is null) { throw new DeepAssertFailedException(node, $"actual は非 null だが、expected が null。", message); }
+                if (expected is null) { throw new PrimitiveAssertFailedException(node, $"actual は非 null だが、expected が null。", message); }
             }
 
             // 参照の比較
@@ -77,9 +77,9 @@ namespace Inasync {
 
             // 数値型として比較
             if (targetType.IsNumeric()) {
-                if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、actual の型 {actualType} は非数値型です。", message); }
-                if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、expected の型 {expectedType} は非数値型です。", message); }
-                if (!actualNumeric.Equals(expectedNumeric)) { throw new DeepAssertFailedException(node, $"actual と expected は数値型として等しくありません。", message); }
+                if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、actual の型 {actualType} は非数値型です。", message); }
+                if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、expected の型 {expectedType} は非数値型です。", message); }
+                if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は数値型として等しくありません。", message); }
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
@@ -88,9 +88,9 @@ namespace Inasync {
 
             // Primitive Data 型として比較
             if (targetType.IsPrimitiveData()) {
-                if (!targetType.IsAssignableFrom(actualType)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、actual の型 {actualType} は非基本データ型です。", message); }
-                if (!targetType.IsAssignableFrom(expectedType)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、expected の型 {expectedType} は非基本データ型です。", message); }
-                if (!actual.Equals(expected)) { throw new DeepAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", message); }
+                if (!targetType.IsAssignableFrom(actualType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、actual の型 {actualType} は非基本データ型です。", message); }
+                if (!targetType.IsAssignableFrom(expectedType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、expected の型 {expectedType} は非基本データ型です。", message); }
+                if (!actual.Equals(expected)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", message); }
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
@@ -99,11 +99,11 @@ namespace Inasync {
 
             // コレクション型として比較
             if (typeof(IEnumerable).IsAssignableFrom(targetType) && targetType != typeof(string)) {
-                if (!(actual is IEnumerable)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、actual の型 {actualType} は非コレクション型です。", message); }
-                if (!(expected is IEnumerable)) { throw new DeepAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、expected の型 {expectedType} は非コレクション型です。", message); }
+                if (!(actual is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、actual の型 {actualType} は非コレクション型です。", message); }
+                if (!(expected is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、expected の型 {expectedType} は非コレクション型です。", message); }
                 var actualItems = ((IEnumerable)actual).AsCollection();
                 var expectedItems = ((IEnumerable)expected).AsCollection();
-                if (actualItems.Count != expectedItems.Count) { throw new DeepAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", message); }
+                if (actualItems.Count != expectedItems.Count) { throw new PrimitiveAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", message); }
 
                 var itemType = targetType.GenericTypeArguments.FirstOrDefault();
                 var actualIter = actualItems.GetEnumerator();
@@ -136,10 +136,10 @@ namespace Inasync {
                 if (prop.GetIndexParameters().Length > 0) { continue; }
 
                 var actualProp = actualType.GetProperty(prop.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (actualProp is null) { throw new DeepAssertFailedException(node, $"actual にプロパティ {prop.Name} が見つかりません。", message); }
+                if (actualProp is null) { throw new PrimitiveAssertFailedException(node, $"actual にプロパティ {prop.Name} が見つかりません。", message); }
 
                 var expectedProp = expectedType.GetProperty(prop.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (expectedProp is null) { throw new DeepAssertFailedException(node, $"expected にプロパティ {prop.Name} が見つかりません。", message); }
+                if (expectedProp is null) { throw new PrimitiveAssertFailedException(node, $"expected にプロパティ {prop.Name} が見つかりません。", message); }
 
                 var actualPropValue = actualProp.GetValue(actual);
                 var expectedPropValue = expectedProp.GetValue(expected);
@@ -157,10 +157,10 @@ namespace Inasync {
             var fields = targetType.GetFields(BindingFlags.Instance | BindingFlags.Public);
             foreach (var field in fields) {
                 var actualField = actualType.GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (actualField is null) { throw new DeepAssertFailedException(node, $"actual にフィールド {field.Name} が見つかりません。", message); }
+                if (actualField is null) { throw new PrimitiveAssertFailedException(node, $"actual にフィールド {field.Name} が見つかりません。", message); }
 
                 var expectedField = expectedType.GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (expectedField is null) { throw new DeepAssertFailedException(node, $"expected にフィールド {field.Name} が見つかりません。", message); }
+                if (expectedField is null) { throw new PrimitiveAssertFailedException(node, $"expected にフィールド {field.Name} が見つかりません。", message); }
 
                 var actualFieldValue = actualField.GetValue(actual);
                 var expectedFieldValue = expectedField.GetValue(expected);

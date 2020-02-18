@@ -4,15 +4,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Inasync.Tests {
 
     [TestClass]
-    public class DeepAssertTests_AssertIs {
+    public class PrimitiveAssertTests_AssertIs {
 
         private static Action TestCase(int testNo, Type? target, object? x, object? y, Type? expectedException = null) => () => {
             TestAA
-                .Act(() => DeepAssert.AssertIs(new AssertNode(name: "", target, x, y, parent: null), message: $"No.{testNo}_a"))
+                .Act(() => PrimitiveAssert.AssertIs(new AssertNode(name: "", target, x, y, parent: null), message: $"No.{testNo}_a"))
                 .Assert(expectedException, message: $"No.{testNo}_a");
 
             TestAA
-                .Act(() => DeepAssert.AssertIs(new AssertNode(name: "", target, y, x, parent: null), message: $"No.{testNo}_b"))
+                .Act(() => PrimitiveAssert.AssertIs(new AssertNode(name: "", target, y, x, parent: null), message: $"No.{testNo}_b"))
                 .Assert(expectedException, message: $"No.{testNo}_b");
         };
 
@@ -20,10 +20,10 @@ namespace Inasync.Tests {
         public void AssertIs_Null() {
             new[] {
                 TestCase( 0, target: null        , x: null, y: null),
-                TestCase( 1, target: null        , x: null, y: 1   , expectedException: typeof(DeepAssertFailedException)),
-                TestCase( 2, target: null        , x: 1   , y: 1   , expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 1, target: null        , x: null, y: 1   , expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 2, target: null        , x: 1   , y: 1   , expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase(10, target: typeof(int?), x: null, y: null),
-                TestCase(11, target: typeof(int?), x: null, y: 1   , expectedException: typeof(DeepAssertFailedException)),
+                TestCase(11, target: typeof(int?), x: null, y: 1   , expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase(12, target: typeof(int?), x: 1   , y: 1   ),
             }.Invoke();
         }
@@ -32,9 +32,9 @@ namespace Inasync.Tests {
         public void AssertIs_Numeric() {
             new[] {
                 TestCase( 0, target: typeof(int)    , x: 1   , y: 1   ),
-                TestCase( 1, target: typeof(int)    , x: 1   , y: 1.1m, expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 1, target: typeof(int)    , x: 1   , y: 1.1m, expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase( 2, target: typeof(int)    , x: 1.1d, y: 1.1m),
-                TestCase( 3, target: typeof(int)    , x: 1   , y: ""  , expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 3, target: typeof(int)    , x: 1   , y: ""  , expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase(10, target: typeof(double) , x: 1   , y: 1.0m),
                 TestCase(20, target: typeof(decimal), x: 1m  , y: 1.0m),
             }.Invoke();
@@ -47,10 +47,10 @@ namespace Inasync.Tests {
             var guid1 = Guid.Parse(guidStr1);
             new[] {
                 TestCase( 0, target: typeof(Guid)  , x: guid1, y: Guid.Parse(guidStr1)),
-                TestCase( 1, target: typeof(Guid)  , x: guid1, y: Guid.Parse(guidStr2), expectedException: typeof(DeepAssertFailedException)),
-                TestCase( 2, target: typeof(Guid)  , x: guid1, y: guidStr1            , expectedException: typeof(DeepAssertFailedException)),
+                TestCase( 1, target: typeof(Guid)  , x: guid1, y: Guid.Parse(guidStr2), expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 2, target: typeof(Guid)  , x: guid1, y: guidStr1            , expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase(10, target: typeof(object), x: guid1, y: Guid.Parse(guidStr1)),
-                TestCase(11, target: typeof(string), x: guid1, y: Guid.Parse(guidStr1), expectedException: typeof(DeepAssertFailedException)),
+                TestCase(11, target: typeof(string), x: guid1, y: Guid.Parse(guidStr1), expectedException: typeof(PrimitiveAssertFailedException)),
             }.Invoke();
         }
 
