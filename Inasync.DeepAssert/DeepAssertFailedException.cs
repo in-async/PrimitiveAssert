@@ -13,7 +13,7 @@ namespace Inasync {
         /// <param name="message">エラーを説明するメッセージ。</param>
         public DeepAssertFailedException(string? message) : base(message) { }
 
-        internal DeepAssertFailedException(DeepAssertArgs args, string reason, string? message) : base($@"{message}: {reason}
-{args}") { }
+        internal DeepAssertFailedException(AssertNode node, string reason, string? message) : base($@"{message}: {reason}
+{node}") { }
     }
 }

@@ -8,11 +8,11 @@ namespace Inasync.Tests {
 
         private static Action TestCase(int testNo, Type? target, object? x, object? y, Type? expectedException = null) => () => {
             TestAA
-                .Act(() => DeepAssert.AssertIs(new DeepAssertArgs(target, x, y, path: ""), message: $"No.{testNo}_a"))
+                .Act(() => DeepAssert.AssertIs(new AssertNode(name: "", target, x, y, parent: null), message: $"No.{testNo}_a"))
                 .Assert(expectedException, message: $"No.{testNo}_a");
 
             TestAA
-                .Act(() => DeepAssert.AssertIs(new DeepAssertArgs(target, y, x, path: ""), message: $"No.{testNo}_b"))
+                .Act(() => DeepAssert.AssertIs(new AssertNode(name: "", target, y, x, parent: null), message: $"No.{testNo}_b"))
                 .Assert(expectedException, message: $"No.{testNo}_b");
         };
 

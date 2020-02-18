@@ -4,7 +4,7 @@ namespace Inasync {
 
     internal static class TypeExtensions {
 
-        public static bool IPrimitiveData(this Type type) {
+        public static bool IsPrimitiveData(this Type type) {
             return type == typeof(bool)
                 || type == typeof(char)
                 || type == typeof(string)
@@ -40,6 +40,10 @@ namespace Inasync {
                 || type == typeof(double)
                 || type == typeof(decimal)
                 ;
+        }
+
+        public static bool IsNullable(this Type type) {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
     }
 }
