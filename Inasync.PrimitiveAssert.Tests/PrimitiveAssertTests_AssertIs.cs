@@ -8,11 +8,11 @@ namespace Inasync.Tests {
 
         private static Action TestCase(int testNo, Type? target, object? x, object? y, Type? expectedException = null) => () => {
             TestAA
-                .Act(() => PrimitiveAssert.AssertIs(new AssertNode(name: "", target, x, y, parent: null), message: $"No.{testNo}_a"))
+                .Act(() => x.AssertIs(target, y, message: $"No.{testNo}_a"))
                 .Assert(expectedException, message: $"No.{testNo}_a");
 
             TestAA
-                .Act(() => PrimitiveAssert.AssertIs(new AssertNode(name: "", target, y, x, parent: null), message: $"No.{testNo}_b"))
+                .Act(() => y.AssertIs(target, x, message: $"No.{testNo}_b"))
                 .Assert(expectedException, message: $"No.{testNo}_b");
         };
 

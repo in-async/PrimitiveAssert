@@ -20,7 +20,7 @@ namespace Inasync {
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs(this object? actual, object? expected, string? message = null) {
-            AssertIs(new AssertNode(name: "", actual?.GetType(), actual, expected, parent: null), message);
+            actual.AssertIs(actual?.GetType(), expected, message);
         }
 
         /// <summary>
@@ -33,10 +33,17 @@ namespace Inasync {
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs<TTarget>(this object? actual, object? expected, string? message = null) {
-            AssertIs(new AssertNode(name: "", targetType: typeof(TTarget), actual, expected, parent: null), message);
+            actual.AssertIs(typeof(TTarget), expected, message);
         }
 
-        internal static void AssertIs(AssertNode node, string? message) {
+        public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
+            RootAssert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null), message);
+        }
+    }
+
+    internal static class RootAssert {
+
+        public static void AssertIs(AssertNode node, string? message) {
             var (targetType, actual, expected) = (node.TargetType, node.Actual, node.Expected);
 
             // null 比較
@@ -67,12 +74,15 @@ namespace Inasync {
                 return;
             }
 
-            // nullable 解除
-            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
-                AssertIs(new AssertNode("Nullable", targetType.GetGenericArguments()[0], actual, expected, node), message);
-                return;
-            }
+            if (PrimitiveNodeAssert.TryAssertIs(targetType, actual, expected, node, message)) { return; }
+            if (CollectionNodeAssert.TryAssertIs(targetType, actual, expected, node, message)) { return; }
+            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
+        }
+    }
 
+    internal static class PrimitiveNodeAssert {
+
+        public static bool TryAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
             var (actualType, expectedType) = (actual.GetType(), expected.GetType());
 
             // 数値型として比較
@@ -83,7 +93,7 @@ namespace Inasync {
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
-                return;
+                return true;
             }
 
             // Primitive Data 型として比較
@@ -94,42 +104,56 @@ namespace Inasync {
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
-                return;
+                return true;
             }
 
-            // コレクション型として比較
-            if (typeof(IEnumerable).IsAssignableFrom(targetType) && targetType != typeof(string)) {
-                if (!(actual is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、actual の型 {actualType} は非コレクション型です。", message); }
-                if (!(expected is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、expected の型 {expectedType} は非コレクション型です。", message); }
-                var actualItems = ((IEnumerable)actual).AsCollection();
-                var expectedItems = ((IEnumerable)expected).AsCollection();
-                if (actualItems.Count != expectedItems.Count) { throw new PrimitiveAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", message); }
-
-                var itemType = targetType.GenericTypeArguments.FirstOrDefault();
-                var actualIter = actualItems.GetEnumerator();
-                var expectedIter = expectedItems.GetEnumerator();
-                for (var i = 0; i < actualItems.Count; i++) {
-                    actualIter.MoveNext();
-                    expectedIter.MoveNext();
-
-                    var itemTargetType = itemType ?? actualIter.Current?.GetType();
-                    AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node), message);
-                }
-                return;
-            }
-
-            // Composite Data 型として比較
-            // NOTE: (オーバーライドされた) Equals による比較には一般的に型の一致も含まれる為、型の比較を行わないここでは使用しない。
-            AssertIsByProperties(targetType, actual, expected, node, message);
-            AssertIsByFields(targetType, actual, expected, node, message);
+            return false;
         }
+    }
 
-        /// <summary>
-        /// <paramref name="targetType"/> 型の公開プロパティを基準とし、
-        /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
-        /// </summary>
-        private static void AssertIsByProperties(Type targetType, object actual, object expected, AssertNode node, string? message) {
+    internal static class CollectionNodeAssert {
+
+        public static bool TryAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+            if (!typeof(IEnumerable).IsAssignableFrom(targetType)) { return false; }
+            if (targetType == typeof(string)) { return false; }
+
             var (actualType, expectedType) = (actual.GetType(), expected.GetType());
+
+            if (!(actual is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、actual の型 {actualType} は非コレクション型です。", message); }
+            if (!(expected is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、expected の型 {expectedType} は非コレクション型です。", message); }
+            var actualItems = ((IEnumerable)actual).AsCollection();
+            var expectedItems = ((IEnumerable)expected).AsCollection();
+            if (actualItems.Count != expectedItems.Count) { throw new PrimitiveAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", message); }
+
+            var itemType = targetType.GenericTypeArguments.FirstOrDefault();
+            var actualIter = actualItems.GetEnumerator();
+            var expectedIter = expectedItems.GetEnumerator();
+            for (var i = 0; i < actualItems.Count; i++) {
+                actualIter.MoveNext();
+                expectedIter.MoveNext();
+
+                var itemTargetType = itemType ?? actualIter.Current?.GetType();
+                RootAssert.AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node), message);
+            }
+
+            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
+
+            return true;
+        }
+    }
+
+    internal static class CompositeNodeAssert {
+
+        public static void AssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+            targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            var (actualType, expectedType) = (actual.GetType(), expected.GetType());
+            if (targetType.IsAssignableFrom(actualType)) {
+                actualType = targetType;
+            }
+            if (targetType.IsAssignableFrom(expectedType)) {
+                expectedType = targetType;
+            }
 
             var props = targetType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (var prop in props) {
@@ -143,16 +167,8 @@ namespace Inasync {
 
                 var actualPropValue = actualProp.GetValue(actual);
                 var expectedPropValue = expectedProp.GetValue(expected);
-                AssertIs(new AssertNode(actualProp.Name, prop.PropertyType, actualPropValue, expectedPropValue, node), message);
+                RootAssert.AssertIs(new AssertNode(actualProp.Name, prop.PropertyType, actualPropValue, expectedPropValue, node), message);
             }
-        }
-
-        /// <summary>
-        /// <paramref name="targetType"/> 型の公開フィールドを基準とし、
-        /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
-        /// </summary>
-        private static void AssertIsByFields(Type targetType, object actual, object expected, AssertNode node, string? message) {
-            var (actualType, expectedType) = (actual.GetType(), expected.GetType());
 
             var fields = targetType.GetFields(BindingFlags.Instance | BindingFlags.Public);
             foreach (var field in fields) {
@@ -164,7 +180,7 @@ namespace Inasync {
 
                 var actualFieldValue = actualField.GetValue(actual);
                 var expectedFieldValue = expectedField.GetValue(expected);
-                AssertIs(new AssertNode(actualField.Name, field.FieldType, actualFieldValue, expectedFieldValue, node), message);
+                RootAssert.AssertIs(new AssertNode(actualField.Name, field.FieldType, actualFieldValue, expectedFieldValue, node), message);
             }
         }
     }

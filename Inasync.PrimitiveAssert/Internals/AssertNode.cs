@@ -4,8 +4,8 @@ namespace Inasync {
 
     internal sealed class AssertNode {
 
-        public AssertNode(string name, Type? targetType, object? actual, object? expected, AssertNode? parent) {
-            Name = name;
+        public AssertNode(string memberName, Type? targetType, object? actual, object? expected, AssertNode? parent) {
+            MemberName = memberName;
             TargetType = targetType;
             Actual = actual;
             Expected = expected;
@@ -15,11 +15,14 @@ namespace Inasync {
                 Path = ".";
             }
             else {
-                Path = parent.Path + "/" + name;
+                Path = parent.Path + "/" + memberName;
+                if (targetType != null) {
+                    Path += ":" + targetType.Name;
+                }
             }
         }
 
-        public string Name { get; }
+        public string MemberName { get; }
         public Type? TargetType { get; }
         public object? Actual { get; }
         public object? Expected { get; }
