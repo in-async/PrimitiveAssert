@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ namespace Inasync {
         /// <paramref name="actual"/> のランタイム型を比較の基準とし、
         /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
         /// </summary>
+        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         /// <param name="actual">検証対象の実値。</param>
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
@@ -36,6 +38,15 @@ namespace Inasync {
             actual.AssertIs(typeof(TTarget), expected, message);
         }
 
+        /// <summary>
+        /// <paramref name="targetType"/> 型を比較の基準とし、
+        /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
+        /// </summary>
+        /// <param name="actual">検証対象の実値。</param>
+        /// <param name="targetType">比較の基準となる型。</param>
+        /// <param name="expected">比較対象となる期待値。</param>
+        /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
+        /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
             RootAssert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null), message);
         }
@@ -48,12 +59,16 @@ namespace Inasync {
 
             // null 比較
             if (targetType is null) {
-                if (!(actual is null)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は null ですが、actual は非 null です。", message); }
-                if (!(expected is null)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は null ですが、expected は非 null です。", message); }
+                if (!(actual is null)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null ですが、actual は非 null です。", message); }
+                if (!(expected is null)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null ですが、expected は非 null です。", message); }
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
                 return;
+            }
+            if (targetType.IsValueType && !targetType.IsNullable()) {
+                if (actual is null) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null 非許容型ですが、actual は null です。", message); }
+                if (expected is null) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null 非許容型ですが、expected は null です。", message); }
             }
             if (actual is null) {
                 if (expected is null) {
@@ -61,17 +76,10 @@ namespace Inasync {
                     Debug.WriteLine(node);
                     return;
                 }
-                else { throw new PrimitiveAssertFailedException(node, $"actual は null だが、expected が非 null。", message); }
+                else { throw new PrimitiveAssertFailedException(node, "actual は null ですが、expected が非 null です。", message); }
             }
             else {
-                if (expected is null) { throw new PrimitiveAssertFailedException(node, $"actual は非 null だが、expected が null。", message); }
-            }
-
-            // 参照の比較
-            if (object.ReferenceEquals(actual, expected)) {
-                Debug.WriteLine(message);
-                Debug.WriteLine(node);
-                return;
+                if (expected is null) { throw new PrimitiveAssertFailedException(node, "actual は非 null ですが、expected が null です。", message); }
             }
 
             if (PrimitiveNodeAssert.TryAssertIs(targetType, actual, expected, node, message)) { return; }
@@ -87,9 +95,9 @@ namespace Inasync {
 
             // 数値型として比較
             if (targetType.IsNumeric()) {
-                if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、actual の型 {actualType} は非数値型です。", message); }
-                if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は数値型ですが、expected の型 {expectedType} は非数値型です。", message); }
-                if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は数値型として等しくありません。", message); }
+                if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、actual は非数値型です。", message); }
+                if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、expected は非数値型です。", message); }
+                if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "actual と expected は数値型として等しくありません。", message); }
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
@@ -98,8 +106,8 @@ namespace Inasync {
 
             // Primitive Data 型として比較
             if (targetType.IsPrimitiveData()) {
-                if (!targetType.IsAssignableFrom(actualType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、actual の型 {actualType} は非基本データ型です。", message); }
-                if (!targetType.IsAssignableFrom(expectedType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} は基本データ型ですが、expected の型 {expectedType} は非基本データ型です。", message); }
+                if (!targetType.IsAssignableFrom(actualType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は基本データ型ですが、actual の型 {actualType} はターゲット型に違反しています。", message); }
+                if (!targetType.IsAssignableFrom(expectedType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は基本データ型ですが、expected の型 {expectedType} はターゲット型に違反しています。", message); }
                 if (!actual.Equals(expected)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", message); }
 
                 Debug.WriteLine(message);
@@ -116,6 +124,8 @@ namespace Inasync {
         public static bool TryAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
             if (!typeof(IEnumerable).IsAssignableFrom(targetType)) { return false; }
             if (targetType == typeof(string)) { return false; }
+
+            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
 
             var (actualType, expectedType) = (actual.GetType(), expected.GetType());
 
@@ -136,8 +146,6 @@ namespace Inasync {
                 RootAssert.AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node), message);
             }
 
-            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
-
             return true;
         }
     }
@@ -155,33 +163,85 @@ namespace Inasync {
                 expectedType = targetType;
             }
 
-            var props = targetType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var prop in props) {
-                if (prop.GetIndexParameters().Length > 0) { continue; }
+            // 参照の比較
+            if (object.ReferenceEquals(actual, expected)) {
+                if (!actualType.IsDuckImplemented(targetType)) { throw new PrimitiveAssertFailedException(node, "actual と expected は参照等価ですが、ターゲット型に違反しています。", message); }
 
-                var actualProp = actualType.GetProperty(prop.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (actualProp is null) { throw new PrimitiveAssertFailedException(node, $"actual にプロパティ {prop.Name} が見つかりません。", message); }
-
-                var expectedProp = expectedType.GetProperty(prop.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (expectedProp is null) { throw new PrimitiveAssertFailedException(node, $"expected にプロパティ {prop.Name} が見つかりません。", message); }
-
-                var actualPropValue = actualProp.GetValue(actual);
-                var expectedPropValue = expectedProp.GetValue(expected);
-                RootAssert.AssertIs(new AssertNode(actualProp.Name, prop.PropertyType, actualPropValue, expectedPropValue, node), message);
+                Debug.WriteLine(message);
+                Debug.WriteLine(node);
+                return;
             }
 
-            var fields = targetType.GetFields(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var field in fields) {
-                var actualField = actualType.GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (actualField is null) { throw new PrimitiveAssertFailedException(node, $"actual にフィールド {field.Name} が見つかりません。", message); }
+            // 各データ メンバーの比較
+            foreach (var member in targetType.GetDataMembers()) {
+                var actualMember = actualType.GetDataMember(member.Name);
+                if (actualMember is null) { throw new PrimitiveAssertFailedException(node, $"actual にデータ メンバー {member.Name} が見つかりません。", message); }
 
-                var expectedField = expectedType.GetField(field.Name, BindingFlags.Instance | BindingFlags.Public);
-                if (expectedField is null) { throw new PrimitiveAssertFailedException(node, $"expected にフィールド {field.Name} が見つかりません。", message); }
+                var expectedMember = expectedType.GetDataMember(member.Name);
+                if (expectedMember is null) { throw new PrimitiveAssertFailedException(node, $"expected にデータ メンバー {member.Name} が見つかりません。", message); }
 
-                var actualFieldValue = actualField.GetValue(actual);
-                var expectedFieldValue = expectedField.GetValue(expected);
-                RootAssert.AssertIs(new AssertNode(actualField.Name, field.FieldType, actualFieldValue, expectedFieldValue, node), message);
+                var actualMemberValue = actualMember.Value.GetValue(actual);
+                var expectedMemberValue = expectedMember.Value.GetValue(expected);
+                RootAssert.AssertIs(new AssertNode(member.Name, member.DataType, actualMemberValue, expectedMemberValue, node), message);
             }
+        }
+    }
+
+    internal static class DuckExtensions {
+
+        public static bool IsDuckImplemented(this Type type, Type duckType) {
+            if (duckType.IsAssignableFrom(type)) { return true; }
+
+            var objMembers = type.GetDataMembers().Select(x => x.Name);
+            var duckMemberSet = new HashSet<string>(duckType.GetDataMembers().Select(x => x.Name));
+            return duckMemberSet.IsSubsetOf(objMembers);
+        }
+
+        public static IEnumerable<DataMember> GetDataMembers(this Type type) {
+            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.GetIndexParameters().Length == 0).Select(x => new DataMember(x));
+            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public).Select(x => new DataMember(x));
+            return props.Concat(fields);
+        }
+
+        public static DataMember? GetDataMember(this Type type, string name) {
+            var prop = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
+            if (prop != null) {
+                return new DataMember(prop);
+            }
+
+            var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public);
+            if (field != null) {
+                return new DataMember(field);
+            }
+
+            return null;
+        }
+    }
+
+    internal readonly struct DataMember {
+        private readonly PropertyInfo? _prop;
+        private readonly FieldInfo? _field;
+
+        public readonly string Name;
+        public readonly Type DataType;
+
+        public DataMember(PropertyInfo prop) {
+            _prop = prop;
+            _field = null;
+            Name = prop.Name;
+            DataType = prop.PropertyType;
+        }
+
+        public DataMember(FieldInfo field) {
+            _prop = null;
+            _field = field;
+            Name = field.Name;
+            DataType = field.FieldType;
+        }
+
+        public object GetValue(object obj) {
+            if (_prop != null) { return _prop.GetValue(obj); }
+            return _field!.GetValue(obj);
         }
     }
 }
