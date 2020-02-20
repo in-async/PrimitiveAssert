@@ -111,6 +111,8 @@ namespace Inasync.Tests {
                 TestCase( 2, target: typeof(DummyClass), x:dummy, y:new{ReadOnlyField=1}, expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase(10, target: readOnlyFieldType , x:dummy, y:DummyClass()        ),
                 TestCase(11, target: readOnlyFieldType , x:dummy, y:new{ReadOnlyField=1}),
+
+                TestCase(50, target: typeof(IList<int>[]), x:new[]{new List<int>{1,2}, new List<int>{3}}, y:new[]{new[]{1,2}, new[]{3}}),
             }.Invoke();
 
             static DummyClass DummyClass() => new DummyClass(readOnlyField: 1, readWriteField: 2, readOnlyProperty: 3, readWriteProperty: 4, writeProperty: 5);

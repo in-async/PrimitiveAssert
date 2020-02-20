@@ -125,7 +125,7 @@ namespace Inasync {
             var expectedItems = ((IEnumerable)expected).AsCollection();
             if (actualItems.Count != expectedItems.Count) { throw new PrimitiveAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", message); }
 
-            var itemType = targetType.GenericTypeArguments.FirstOrDefault();
+            var itemType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments.FirstOrDefault();
             var actualIter = actualItems.GetEnumerator();
             var expectedIter = expectedItems.GetEnumerator();
             for (var i = 0; i < actualItems.Count; i++) {
