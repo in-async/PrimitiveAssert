@@ -11,6 +11,7 @@ namespace Inasync {
     /// ターゲットを基本データ型に分解して比較します。
     /// </summary>
     public static class PrimitiveAssert {
+        private static readonly RootAssert _assert = new RootAssert();
 
         /// <summary>
         /// <paramref name="actual"/> のランタイム型を比較の基準とし、
@@ -48,13 +49,13 @@ namespace Inasync {
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
-            RootAssert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null), message);
+            _assert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null), message);
         }
     }
 
-    internal static class RootAssert {
+    internal class RootAssert {
 
-        public static void AssertIs(AssertNode node, string? message) {
+        public void AssertIs(AssertNode node, string? message) {
             var (targetType, actual, expected) = (node.TargetType, node.Actual, node.Expected);
 
             // null 比較
@@ -82,50 +83,39 @@ namespace Inasync {
                 if (expected is null) { throw new PrimitiveAssertFailedException(node, "actual は非 null ですが、expected が null です。", message); }
             }
 
-            if (PrimitiveNodeAssert.TryAssertIs(targetType, actual, expected, node, message)) { return; }
-            if (CollectionNodeAssert.TryAssertIs(targetType, actual, expected, node, message)) { return; }
-            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
+            if (TryNumericAssertIs(targetType, actual, expected, node, message)) { return; }
+            if (TryPrimitiveAssertIs(targetType, actual, expected, node, message)) { return; }
+            if (TryCompositeAssertIs(targetType, actual, expected, node, message)) { return; }
+            if (TryCollectionAssertIs(targetType, actual, expected, node, message)) { return; }
         }
-    }
 
-    internal static class PrimitiveNodeAssert {
+        protected virtual bool TryNumericAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+            if (!targetType.IsNumeric()) { return false; }
 
-        public static bool TryAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
-            var (actualType, expectedType) = (actual.GetType(), expected.GetType());
+            if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、actual は非数値型です。", message); }
+            if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、expected は非数値型です。", message); }
+            if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "actual と expected は数値型として等しくありません。", message); }
 
-            // 数値型として比較
-            if (targetType.IsNumeric()) {
-                if (!Numeric.TryCreate(actual, out var actualNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、actual は非数値型です。", message); }
-                if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、expected は非数値型です。", message); }
-                if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "actual と expected は数値型として等しくありません。", message); }
-
-                Debug.WriteLine(message);
-                Debug.WriteLine(node);
-                return true;
-            }
-
-            // Primitive Data 型として比較
-            if (targetType.IsPrimitiveData()) {
-                if (!targetType.IsAssignableFrom(actualType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は基本データ型ですが、actual の型 {actualType} はターゲット型に違反しています。", message); }
-                if (!targetType.IsAssignableFrom(expectedType)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型は基本データ型ですが、expected の型 {expectedType} はターゲット型に違反しています。", message); }
-                if (!actual.Equals(expected)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", message); }
-
-                Debug.WriteLine(message);
-                Debug.WriteLine(node);
-                return true;
-            }
-
-            return false;
+            Debug.WriteLine(message);
+            Debug.WriteLine(node);
+            return true;
         }
-    }
 
-    internal static class CollectionNodeAssert {
+        protected virtual bool TryPrimitiveAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+            if (!targetType.IsPrimitiveData()) { return false; }
 
-        public static bool TryAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+            if (!targetType.IsInstanceOfType(actual)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は基本データ型ですが、actual はターゲット型に違反しています。", message); }
+            if (!targetType.IsInstanceOfType(expected)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は基本データ型ですが、expected はターゲット型に違反しています。", message); }
+            if (!actual.Equals(expected)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", message); }
+
+            Debug.WriteLine(message);
+            Debug.WriteLine(node);
+            return true;
+        }
+
+        protected virtual bool TryCollectionAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
             if (!typeof(IEnumerable).IsAssignableFrom(targetType)) { return false; }
             if (targetType == typeof(string)) { return false; }
-
-            CompositeNodeAssert.AssertIs(targetType, actual, expected, node, message);
 
             var (actualType, expectedType) = (actual.GetType(), expected.GetType());
 
@@ -143,16 +133,13 @@ namespace Inasync {
                 expectedIter.MoveNext();
 
                 var itemTargetType = itemType ?? actualIter.Current?.GetType();
-                RootAssert.AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node), message);
+                AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node), message);
             }
 
-            return true;
+            return false;
         }
-    }
 
-    internal static class CompositeNodeAssert {
-
-        public static void AssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
+        protected virtual bool TryCompositeAssertIs(Type targetType, object actual, object expected, AssertNode node, string? message) {
             targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
             var (actualType, expectedType) = (actual.GetType(), expected.GetType());
@@ -169,7 +156,7 @@ namespace Inasync {
 
                 Debug.WriteLine(message);
                 Debug.WriteLine(node);
-                return;
+                return true;
             }
 
             // 各データ メンバーの比較
@@ -182,8 +169,10 @@ namespace Inasync {
 
                 var actualMemberValue = actualMember.Value.GetValue(actual);
                 var expectedMemberValue = expectedMember.Value.GetValue(expected);
-                RootAssert.AssertIs(new AssertNode(member.Name, member.DataType, actualMemberValue, expectedMemberValue, node), message);
+                AssertIs(new AssertNode(member.Name, member.DataType, actualMemberValue, expectedMemberValue, node), message);
             }
+
+            return false;
         }
     }
 
