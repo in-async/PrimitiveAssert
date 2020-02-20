@@ -14,6 +14,7 @@ namespace Inasync {
                 || type == typeof(string)
                 || type == typeof(DateTime)
                 || type == typeof(DateTimeOffset)
+                || type == typeof(TimeSpan)
                 || type == typeof(Guid)
                 || type == typeof(Uri)
                 || type.IsEnum
@@ -28,7 +29,7 @@ namespace Inasync {
                 || type == typeof(float)
                 || type == typeof(double)
                 || type == typeof(decimal)
-                || Nullable.GetUnderlyingType(type) is Type underingType && IsNumeric(underingType)
+                || Nullable.GetUnderlyingType(type) is Type underingType && IsPrimitiveData(underingType)
                 ;
         }
 

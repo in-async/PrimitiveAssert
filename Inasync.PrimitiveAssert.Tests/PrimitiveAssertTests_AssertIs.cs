@@ -88,14 +88,16 @@ namespace Inasync.Tests {
                 TestCase( 0, target: typeof(IEnumerable), x: new[]{1,2}, y: new[]{1,2}),
                 TestCase( 1, target: typeof(IEnumerable), x: new[]{1,2}, y: new[]{1  }, expectedException: typeof(PrimitiveAssertFailedException)),  // 要素数の不一致。
                 TestCase( 2, target: typeof(IEnumerable), x: new[]{1,2}, y: new[]{1,3}, expectedException: typeof(PrimitiveAssertFailedException)),  // 値の不一致。
+                TestCase( 3, target: typeof(IEnumerable), x: new[]{1,2}, y: 1         , expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。IEnumerable 型に int 値は割り当てられない。
+                TestCase( 4, target: typeof(IEnumerable), x: 1         , y: new[]{1,2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。IEnumerable 型に int 値は割り当てられない。
 
                 TestCase(10, target: typeof(string)     , x: new[]{'a','b'}    , y: new[]{'a','b'}    , expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。string 型に char[] 値は割り当てられない。
                 TestCase(11, target: typeof(IEnumerable), x: "ab"              , y:"ab"               ),
                 TestCase(12, target: typeof(IEnumerable), x: new object[]{1,""}, y: new object[]{1,""}),
 
-                TestCase(20, target: countType          , x: new int[]    {1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ダック型の不一致。Array に Count プロパティはない (明示的実装は比較されない)
+                TestCase(20, target: countType          , x: new int[]    {1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。Array は {Count:int} 匿名型を (ダック的に) 満たしていない (Count 等の明示的実装は比較されない)
                 TestCase(21, target: countType          , x: new List<int>{1,2}, y: new{Count=2}),
-                TestCase(22, target: typeof(ICollection), x: new List<int>{1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。ICollection 型に匿名値は割り当てられない。
+                TestCase(22, target: typeof(ICollection), x: new List<int>{1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。{Count:int} 匿名値は ICollection 型を (ダック的に) 満たしていない。
                 TestCase(23, target: typeof(ICollection), x: new List<int>{1,2}, y: new[]{1,2}  ),
             }.Invoke();
         }
@@ -104,11 +106,13 @@ namespace Inasync.Tests {
         public void AssertIs_CompositeData() {
             var dummy = DummyClass();
             var readOnlyFieldType = new { ReadOnlyField = 0 }.GetType();
+            var fooType = new { Foo = 0 }.GetType();
 
             new[] {
                 TestCase( 0, target: typeof(DummyClass), x:dummy, y:dummy               ),
                 TestCase( 1, target: typeof(DummyClass), x:dummy, y:DummyClass()        ),
-                TestCase( 2, target: typeof(DummyClass), x:dummy, y:new{ReadOnlyField=1}, expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 2, target: typeof(DummyClass), x:dummy, y:new{ReadOnlyField=1}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。{ReadOnlyField:int} 匿名値は DummyClass 型を (ダック的に) 満たしていない。
+                TestCase( 3, target: fooType           , x:dummy, y:dummy               , expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。DummyClass 値は {Foo:int} 匿名型を (ダック的に) 満たしていない。
                 TestCase(10, target: readOnlyFieldType , x:dummy, y:DummyClass()        ),
                 TestCase(11, target: readOnlyFieldType , x:dummy, y:new{ReadOnlyField=1}),
 
