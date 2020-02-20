@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Inasync.Tests {
@@ -81,6 +82,8 @@ namespace Inasync.Tests {
 
         [TestMethod]
         public void AssertIs_Collection() {
+            var countType = new { Count = 0 }.GetType();
+
             new[] {
                 TestCase( 0, target: typeof(IEnumerable), x: new[]{1,2}, y: new[]{1,2}),
                 TestCase( 1, target: typeof(IEnumerable), x: new[]{1,2}, y: new[]{1  }, expectedException: typeof(PrimitiveAssertFailedException)),  // 要素数の不一致。
@@ -90,14 +93,27 @@ namespace Inasync.Tests {
                 TestCase(11, target: typeof(IEnumerable), x: "ab"              , y:"ab"               ),
                 TestCase(12, target: typeof(IEnumerable), x: new object[]{1,""}, y: new object[]{1,""}),
 
-                //TestCase(13, target: typeof(IList)      , x: new Queue()       , y:new Queue()        ),
+                TestCase(20, target: countType          , x: new int[]    {1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ダック型の不一致。Array に Count プロパティはない (明示的実装は比較されない)
+                TestCase(21, target: countType          , x: new List<int>{1,2}, y: new{Count=2}),
+                TestCase(22, target: typeof(ICollection), x: new List<int>{1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。ICollection 型に匿名値は割り当てられない。
+                TestCase(23, target: typeof(ICollection), x: new List<int>{1,2}, y: new[]{1,2}  ),
             }.Invoke();
-            Assert.Inconclusive();
         }
 
         [TestMethod]
         public void AssertIs_CompositeData() {
-            Assert.Inconclusive();
+            var dummy = DummyClass();
+            var readOnlyFieldType = new { ReadOnlyField = 0 }.GetType();
+
+            new[] {
+                TestCase( 0, target: typeof(DummyClass), x:dummy, y:dummy               ),
+                TestCase( 1, target: typeof(DummyClass), x:dummy, y:DummyClass()        ),
+                TestCase( 2, target: typeof(DummyClass), x:dummy, y:new{ReadOnlyField=1}, expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase(10, target: readOnlyFieldType , x:dummy, y:DummyClass()        ),
+                TestCase(11, target: readOnlyFieldType , x:dummy, y:new{ReadOnlyField=1}),
+            }.Invoke();
+
+            static DummyClass DummyClass() => new DummyClass(readOnlyField: 1, readWriteField: 2, readOnlyProperty: 3, readWriteProperty: 4, writeProperty: 5);
         }
 
         [TestMethod]
@@ -149,6 +165,23 @@ namespace Inasync.Tests {
         #region Helper
 
         private readonly struct DummyStruct { }
+
+        private class DummyClass {
+            public readonly int ReadOnlyField;
+            public int ReadWriteField;
+
+            public DummyClass(int readOnlyField, int readWriteField, int readOnlyProperty, int readWriteProperty, int writeProperty) {
+                ReadOnlyField = readOnlyField;
+                ReadWriteField = readWriteField;
+                ReadOnlyProperty = readOnlyProperty;
+                ReadWriteProperty = readWriteProperty;
+                WriteProperty = writeProperty;
+            }
+
+            public int ReadOnlyProperty { get; }
+            public int ReadWriteProperty { get; set; }
+            public int WriteProperty { set { } }
+        }
 
         #endregion Helper
     }

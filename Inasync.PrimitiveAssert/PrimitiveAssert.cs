@@ -187,8 +187,18 @@ namespace Inasync {
         }
 
         public static IEnumerable<DataMember> GetDataMembers(this Type type) {
-            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.GetIndexParameters().Length == 0).Select(x => new DataMember(x));
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public).Select(x => new DataMember(x));
+            var props = (
+                from prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                where prop.GetIndexParameters().Length == 0
+                where prop.GetGetMethod() != null
+                select new DataMember(prop)
+            );
+
+            var fields = (
+                from field in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                select new DataMember(field)
+            );
+
             return props.Concat(fields);
         }
 
