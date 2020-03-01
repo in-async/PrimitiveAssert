@@ -14,16 +14,15 @@ namespace Inasync {
         private static readonly RootAssert _assert = new RootAssert();
 
         /// <summary>
-        /// <paramref name="actual"/> のランタイム型を比較の基準とし、
+        /// <paramref name="expected"/> のランタイム型を比較の基準とし、
         /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
         /// </summary>
-        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         /// <param name="actual">検証対象の実値。</param>
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         public static void AssertIs(this object? actual, object? expected, string? message = null) {
-            actual.AssertIs(actual?.GetType(), expected, message);
+            actual.AssertIs(expected?.GetType(), expected, message);
         }
 
         /// <summary>
@@ -35,6 +34,7 @@ namespace Inasync {
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
+        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         public static void AssertIs<TTarget>(this object? actual, object? expected, string? message = null) {
             actual.AssertIs(typeof(TTarget), expected, message);
         }
@@ -48,6 +48,7 @@ namespace Inasync {
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
+        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
             _assert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null), message);
         }

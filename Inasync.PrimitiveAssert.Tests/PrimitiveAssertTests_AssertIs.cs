@@ -97,7 +97,7 @@ namespace Inasync.Tests {
 
                 TestCase(20, target: countType          , x: new int[]    {1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。Array は {Count:int} 匿名型を (ダック的に) 満たしていない (Count 等の明示的実装は比較されない)
                 TestCase(21, target: countType          , x: new List<int>{1,2}, y: new{Count=2}),
-                TestCase(22, target: typeof(ICollection), x: new List<int>{1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。{Count:int} 匿名値は ICollection 型を (ダック的に) 満たしていない。
+                TestCase(22, target: typeof(ICollection), x: new List<int>{1,2}, y: new{Count=2}, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。{Count:int} 匿名値は ICollection 型を (ダック的に) 満たしていない (SyncRoot とか)。
                 TestCase(23, target: typeof(ICollection), x: new List<int>{1,2}, y: new[]{1,2}  ),
             }.Invoke();
         }
@@ -166,6 +166,20 @@ namespace Inasync.Tests {
             };
 
             TestCase(0, target: x.GetType(), x: x, y: y)();
+        }
+
+        [TestMethod]
+        public void AssertIs_WithRuntimeType() {
+            Action TestCase(int testNo, object x, object y, Type? expectedException = null) => () => {
+                TestAA
+                    .Act(() => x.AssertIs(y, message: $"No.{testNo}"))
+                    .Assert(expectedException, message: $"No.{testNo}");
+            };
+
+            new[] {
+                TestCase( 0, x: new{ Foo=1, Bar="B" }, y: new{ Foo=1 }         ),
+                TestCase( 1, x: new{ Foo=1 }         , y: new{ Foo=1, Bar="B" }, expectedException: typeof(PrimitiveAssertFailedException)),
+            }.Invoke();
         }
 
         #region Helper
