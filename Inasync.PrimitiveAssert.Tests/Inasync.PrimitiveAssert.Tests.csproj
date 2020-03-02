@@ -4,6 +4,8 @@
     <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;net461</TargetFrameworks>
 
     <IsPackable>false</IsPackable>
+
+    <RootNamespace>Inasync.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
