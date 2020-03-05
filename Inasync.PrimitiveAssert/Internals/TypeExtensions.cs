@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -33,6 +34,23 @@ namespace Inasync {
                 || type == typeof(decimal)
                 || Nullable.GetUnderlyingType(type) is Type underingType && IsPrimitiveData(underingType)
                 ;
+        }
+
+        /// <summary>
+        /// 汎用コレクションかどうか。
+        /// <para>
+        /// ここでの汎用コレクションとは、<see cref="System.Collections"/> または <see cref="System.Collections.Generic"/> 名前空間に属する <see cref="IEnumerable"/> 実装を指します。
+        /// </para>
+        /// </summary>
+        public static bool IsSystemCollection(this Type type) {
+            if (!typeof(IEnumerable).IsAssignableFrom(type)) { return false; }
+
+            return type.Namespace switch
+            {
+                "System.Collections" => true,
+                "System.Collections.Generic" => true,
+                _ => false,
+            };
         }
 
         /// <summary>

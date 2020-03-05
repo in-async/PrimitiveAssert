@@ -42,8 +42,8 @@ namespace Inasync {
 
             if (TryNumericAssertIs(targetType, actual, expected, node)) { return; }
             if (TryPrimitiveAssertIs(targetType, actual, expected, node)) { return; }
-            if (TryCompositeAssertIs(targetType, actual, expected, node)) { return; }
             if (TryCollectionAssertIs(targetType, actual, expected, node)) { return; }
+            if (TryCompositeAssertIs(targetType, actual, expected, node)) { return; }
         }
 
         private void WriteLog(AssertNode node) {
@@ -100,6 +100,7 @@ namespace Inasync {
                 var itemTargetType = itemType ?? actualIter.Current?.GetType();
                 AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node));
             }
+            if (targetType.IsSystemCollection()) { return true; }
 
             return false;
         }
