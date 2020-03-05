@@ -47,6 +47,7 @@ namespace Inasync {
 
             return type.Namespace switch
             {
+                "System" => true,
                 "System.Collections" => true,
                 "System.Collections.Generic" => true,
                 _ => false,

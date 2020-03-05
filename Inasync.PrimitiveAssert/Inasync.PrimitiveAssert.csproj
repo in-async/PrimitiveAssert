@@ -8,8 +8,8 @@
     <Description>A simple library that decomposes targets into primitive data types and asserts them.</Description>
     <PackageProjectUrl>https://github.com/in-async/PrimitiveAssert</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/in-async/PrimitiveAssert/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>library test unittest assert</PackageTags>
-    <Version>0.3.0</Version>
+    <PackageTags>library test unittest assert deep</PackageTags>
+    <Version>0.3.1</Version>
   </PropertyGroup>
 
 </Project>

@@ -180,6 +180,7 @@ namespace Inasync.Tests {
                 TestCase( 0, x: new{ Foo=1, Bar="B" }, y: new{ Foo=1 }         , expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase( 1, x: new{ Foo=1 }         , y: new{ Foo=1, Bar="B" }),
                 TestCase( 2, x: new List<int>{ 1, 2 }, y: new[]{ 1, 2 }        ),  // issue #3: List<T> 等の汎用コレクションは複合型アサートを行わない (List<T> なら Capacity をアサートしない)
+                TestCase( 3, x: new[]{ 1, 2 }        , y: new List<int>{ 1, 2 }),  // issue #6: 配列や Array も汎用コレクションとして、複合型アサートは行わない。
             }.Invoke();
         }
 
