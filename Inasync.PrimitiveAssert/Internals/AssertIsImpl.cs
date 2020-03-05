@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using Commons;
 
 namespace Inasync {
@@ -92,7 +91,7 @@ namespace Inasync {
             var expectedItems = ((IEnumerable)expected).AsCollection();
             if (actualItems.Count != expectedItems.Count) { throw new PrimitiveAssertFailedException(node, $"actual の要素数 {actualItems.Count} と expected の要素数 {expectedItems.Count} が等しくありません。", _message); }
 
-            var itemType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments.FirstOrDefault();
+            var itemType = targetType.GetEnumerableElementType();
             var actualIter = actualItems.GetEnumerator();
             var expectedIter = expectedItems.GetEnumerator();
             for (var i = 0; i < actualItems.Count; i++) {

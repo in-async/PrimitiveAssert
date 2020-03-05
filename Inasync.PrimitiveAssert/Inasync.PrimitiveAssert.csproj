@@ -9,7 +9,7 @@
     <PackageProjectUrl>https://github.com/in-async/PrimitiveAssert</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/in-async/PrimitiveAssert/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>library test unittest assert deep</PackageTags>
-    <Version>0.3.2</Version>
+    <Version>0.3.3</Version>
   </PropertyGroup>
 
 </Project>
