@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Inasync.Tests {
 
     [TestClass]
-    public class PrimitiveAssertTests_ToPrimitiveString {
+    public class PrimitiveSerializerTests {
 
         [TestMethod]
         public void Usage() {

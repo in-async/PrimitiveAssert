@@ -2,10 +2,29 @@
 
 namespace Inasync {
 
+    /// <summary>
+    /// <see cref="PrimitiveAssert"/> における数値型を表します。
+    /// </summary>
     internal readonly struct Numeric : IEquatable<Numeric> {
 
+        public static bool IsNumeric(Type type) {
+            return type == typeof(sbyte)
+                || type == typeof(byte)
+                || type == typeof(short)
+                || type == typeof(ushort)
+                || type == typeof(int)
+                || type == typeof(uint)
+                || type == typeof(long)
+                || type == typeof(ulong)
+                || type == typeof(float)
+                || type == typeof(double)
+                || type == typeof(decimal)
+                || Nullable.GetUnderlyingType(type) is Type underingType && IsNumeric(underingType)
+                ;
+        }
+
         public static bool TryCreate(object value, out Numeric result) {
-            if (!value.GetType().IsNumeric()) {
+            if (!IsNumeric(value.GetType())) {
                 result = default;
                 return false;
             }
