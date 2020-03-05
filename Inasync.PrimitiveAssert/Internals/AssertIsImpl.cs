@@ -15,7 +15,9 @@ namespace Inasync {
         }
 
         public void AssertIs(AssertNode node) {
-            var (targetType, actual, expected) = (node.TargetType, node.Actual, node.Expected);
+            var targetType = node.TargetType;
+            var actual = node.Actual;
+            var expected = node.Expected;
 
             // null 比較
             if (targetType is null) {
@@ -81,7 +83,8 @@ namespace Inasync {
             if (!typeof(IEnumerable).IsAssignableFrom(targetType)) { return false; }
             if (targetType == typeof(string)) { return false; }
 
-            var (actualType, expectedType) = (actual.GetType(), expected.GetType());
+            var actualType = actual.GetType();
+            var expectedType = expected.GetType();
 
             if (!(actual is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、actual の型 {actualType} は非コレクション型です。", _message); }
             if (!(expected is IEnumerable)) { throw new PrimitiveAssertFailedException(node, $"ターゲット型 {targetType} はコレクション型ですが、expected の型 {expectedType} は非コレクション型です。", _message); }
@@ -108,7 +111,8 @@ namespace Inasync {
         private bool TryCompositeAssertIs(Type targetType, object actual, object expected, AssertNode node) {
             targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
-            var (actualType, expectedType) = (actual.GetType(), expected.GetType());
+            var actualType = actual.GetType();
+            var expectedType = expected.GetType();
             if (targetType.IsAssignableFrom(actualType)) {
                 actualType = targetType;
             }

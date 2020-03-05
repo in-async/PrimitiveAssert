@@ -5,4 +5,4 @@
 
 ## Target Frameworks
 - .NET Standard 2.0
-- .NET Standard 2.1
+- .NET Framework 4.6.1
