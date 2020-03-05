@@ -15,15 +15,15 @@ namespace Inasync {
         public static bool ConsoleLogging { get; set; } = false;
 
         /// <summary>
-        /// <paramref name="expected"/> のランタイム型を比較の基準とし、
+        /// <typeparamref name="TTarget"/> 型を比較の基準とし、
         /// <paramref name="actual"/> と <paramref name="expected"/> が等価かどうかを検証します。
         /// </summary>
         /// <param name="actual">検証対象の実値。</param>
         /// <param name="expected">比較対象となる期待値。</param>
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
-        public static void AssertIs(this object? actual, object? expected, string? message = null) {
-            actual.AssertIs(expected?.GetType(), expected, message);
+        public static void AssertIs<TTarget>(this TTarget actual, object? expected, string? message = null) {
+            actual.AssertIs(typeof(TTarget), expected, message);
         }
 
         /// <summary>

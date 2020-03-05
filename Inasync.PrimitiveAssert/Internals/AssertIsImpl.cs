@@ -96,6 +96,7 @@ namespace Inasync {
                 actualIter.MoveNext();
                 expectedIter.MoveNext();
 
+                // NOTE: 要素型が不明の場合は、要素のランタイム型にフォールバック。
                 var itemTargetType = itemType ?? actualIter.Current?.GetType();
                 AssertIs(new AssertNode(i.ToString(), itemTargetType, actualIter.Current, expectedIter.Current, node));
             }

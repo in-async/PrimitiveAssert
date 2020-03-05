@@ -169,16 +169,16 @@ namespace Inasync.Tests {
         }
 
         [TestMethod]
-        public void AssertIs_WithRuntimeType() {
-            Action TestCase(int testNo, object x, object y, Type? expectedException = null) => () => {
+        public void AssertIs_WithActualType() {
+            Action TestCase<T>(int testNo, T x, object y, Type? expectedException = null) => () => {
                 TestAA
                     .Act(() => x.AssertIs(y, message: $"No.{testNo}"))
                     .Assert(expectedException, message: $"No.{testNo}");
             };
 
             new[] {
-                TestCase( 0, x: new{ Foo=1, Bar="B" }, y: new{ Foo=1 }         ),
-                TestCase( 1, x: new{ Foo=1 }         , y: new{ Foo=1, Bar="B" }, expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 0, x: new{ Foo=1, Bar="B" }, y: new{ Foo=1 }         , expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 1, x: new{ Foo=1 }         , y: new{ Foo=1, Bar="B" }),
             }.Invoke();
         }
 
