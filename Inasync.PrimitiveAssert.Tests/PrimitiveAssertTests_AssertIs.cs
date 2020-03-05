@@ -181,6 +181,7 @@ namespace Inasync.Tests {
                 TestCase( 1, x: new{ Foo=1 }         , y: new{ Foo=1, Bar="B" }),
                 TestCase( 2, x: new List<int>{ 1, 2 }, y: new[]{ 1, 2 }        ),  // issue #3: List<T> 等の汎用コレクションは複合型アサートを行わない (List<T> なら Capacity をアサートしない)
                 TestCase( 3, x: new[]{ 1, 2 }        , y: new List<int>{ 1, 2 }),  // issue #6: 配列や Array も汎用コレクションとして、複合型アサートは行わない。
+                TestCase( 4, x: new DummyStruct[0]   , y: new List<DummyStruct>()), // issue #7: System 名前空間かどうかは配列判定に関係なかったので、適切な配列判定に修正。
             }.Invoke();
         }
 

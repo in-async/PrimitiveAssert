@@ -39,15 +39,16 @@ namespace Inasync {
         /// <summary>
         /// 汎用コレクションかどうか。
         /// <para>
-        /// ここでの汎用コレクションとは、<see cref="System.Collections"/> または <see cref="System.Collections.Generic"/> 名前空間に属する <see cref="IEnumerable"/> 実装を指します。
+        /// ここでの汎用コレクションとは配列、<see cref="Array"/>、
+        /// <see cref="System.Collections"/> または <see cref="System.Collections.Generic"/> 名前空間に属する <see cref="IEnumerable"/> 実装のいずれかを指します。
         /// </para>
         /// </summary>
         public static bool IsSystemCollection(this Type type) {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) { return false; }
+            if (typeof(Array).IsAssignableFrom(type)) { return true; }
 
             return type.Namespace switch
             {
-                "System" => true,
                 "System.Collections" => true,
                 "System.Collections.Generic" => true,
                 _ => false,
