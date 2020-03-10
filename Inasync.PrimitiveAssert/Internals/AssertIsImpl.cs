@@ -23,7 +23,7 @@ namespace Inasync {
                 if (!(actual is null)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null ですが、actual は非 null です。", _message); }
                 if (!(expected is null)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null ですが、expected は非 null です。", _message); }
 
-                WriteLog(node);
+                WriteLog(node, "actual と expected はどちらも null です。");
                 return;
             }
             if (targetType.IsValueType && !targetType.IsNullable()) {
@@ -32,7 +32,7 @@ namespace Inasync {
             }
             if (actual is null) {
                 if (expected is null) {
-                    WriteLog(node);
+                    WriteLog(node, "actual と expected はどちらも null です。");
                     return;
                 }
                 else { throw new PrimitiveAssertFailedException(node, "actual は null ですが、expected が非 null です。", _message); }
@@ -41,19 +41,43 @@ namespace Inasync {
                 if (expected is null) { throw new PrimitiveAssertFailedException(node, "actual は非 null ですが、expected が null です。", _message); }
             }
 
+            if (TryCircularReferenceAssertIs(targetType, actual, expected, node)) { return; }
             if (TryNumericAssertIs(targetType, actual, expected, node)) { return; }
             if (TryPrimitiveAssertIs(targetType, actual, expected, node)) { return; }
             if (TryCollectionAssertIs(targetType, actual, expected, node)) { return; }
             if (TryCompositeAssertIs(targetType, actual, expected, node)) { return; }
         }
 
-        private void WriteLog(AssertNode node) {
+        private void WriteLog(AssertNode node, string additionalMessage) {
             if (_logger == null) { return; }
 
             if (_message != null) {
                 _logger(_message);
             }
+            _logger(additionalMessage);
             _logger(node.ToString());
+        }
+
+        private bool TryCircularReferenceAssertIs(Type targetType, object actual, object expected, AssertNode node) {
+            var actualType = actual.GetType();
+            var expectedType = expected.GetType();
+            if (actualType.IsValueType || expectedType.IsValueType) { return false; }
+
+            for (var parent = node.Parent; parent != null; parent = parent.Parent) {
+                if (ReferenceEquals(parent.Actual, actual)) {
+                    if (ReferenceEquals(parent.Expected, expected)) {
+                        if (!actualType.IsDuckImplemented(targetType)) { throw new PrimitiveAssertFailedException(node, "actual と expected は同じパスに対する循環参照ですが、ターゲット型に違反しています。", _message); }
+
+                        WriteLog(node, $"actual と expected は同じパスに対する循環参照です。{Environment.NewLine}循環先のパス: {parent.Path}");
+                        return true;
+                    }
+                    else { throw new PrimitiveAssertFailedException(node, "actual は循環参照ですが、expected が循環参照ではありません。", _message); }
+                }
+                else {
+                    if (ReferenceEquals(parent.Expected, expected)) { throw new PrimitiveAssertFailedException(node, "actual は循環参照ではありませんが、expected が循環参照です。", _message); }
+                }
+            }
+            return false;
         }
 
         private bool TryNumericAssertIs(Type targetType, object actual, object expected, AssertNode node) {
@@ -63,7 +87,7 @@ namespace Inasync {
             if (!Numeric.TryCreate(expected, out var expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は数値型ですが、expected は非数値型です。", _message); }
             if (!actualNumeric.Equals(expectedNumeric)) { throw new PrimitiveAssertFailedException(node, "actual と expected は数値型として等しくありません。", _message); }
 
-            WriteLog(node);
+            WriteLog(node, "actual と expected は数値型として等しいです。");
             return true;
         }
 
@@ -74,7 +98,7 @@ namespace Inasync {
             if (!targetType.IsInstanceOfType(expected)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は基本データ型ですが、expected はターゲット型に違反しています。", _message); }
             if (!actual.Equals(expected)) { throw new PrimitiveAssertFailedException(node, $"actual と expected は基本データ型として等しくありません。", _message); }
 
-            WriteLog(node);
+            WriteLog(node, $"actual と expected は {targetType.Name} 型として等しいです。");
             return true;
         }
 
@@ -120,10 +144,10 @@ namespace Inasync {
             }
 
             // 参照の比較
-            if (object.ReferenceEquals(actual, expected)) {
-                if (!actualType.IsDuckImplemented(targetType)) { throw new PrimitiveAssertFailedException(node, "actual と expected は参照等価ですが、ターゲット型に違反しています。", _message); }
+            if (ReferenceEquals(actual, expected)) {
+                if (!actualType.IsDuckImplemented(targetType)) { throw new PrimitiveAssertFailedException(node, "actual と expected は同じ参照ですが、ターゲット型に違反しています。", _message); }
 
-                WriteLog(node);
+                WriteLog(node, "actual と expected は同じ参照です。");
                 return true;
             }
 
