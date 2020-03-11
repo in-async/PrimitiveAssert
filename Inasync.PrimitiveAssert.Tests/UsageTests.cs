@@ -7,7 +7,7 @@ namespace Inasync.Tests {
     [TestClass]
     public class UsageTests {
 
-        [ClassInitialize]
+        [AssemblyInitialize]
         public static void Initialize(TestContext context) {
             PrimitiveAssert.ConsoleLogging = true;
         }

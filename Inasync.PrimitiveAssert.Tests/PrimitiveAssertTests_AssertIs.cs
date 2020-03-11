@@ -115,6 +115,8 @@ namespace Inasync.Tests {
                 TestCase( 3, target: fooType           , x:dummy, y:dummy               , expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。DummyClass 値は {Foo:int} 匿名型を (ダック的に) 満たしていない。
                 TestCase(10, target: readOnlyFieldType , x:dummy, y:DummyClass()        ),
                 TestCase(11, target: readOnlyFieldType , x:dummy, y:new{ReadOnlyField=1}),
+                TestCase(12, target: typeof(object)    , x:dummy, y:new{}               ),  // issue #10: ターゲット型が object の場合データ メンバーが存在しない為、実質検証なし。
+                TestCase(13, target: typeof(object)    , x:dummy, y:new{Foo=0}          ),  // issue #10: ターゲット型が object の場合データ メンバーが存在しない為、実質検証なし。
 
                 TestCase(50, target: typeof(IList<int>[]), x:new[]{new List<int>{1,2}, new List<int>{3}}, y:new[]{new[]{1,2}, new[]{3}}),
             }.Invoke();
@@ -183,6 +185,8 @@ namespace Inasync.Tests {
                 TestCase( 3, x: new[]{ 1, 2 }        , y: new List<int>{ 1, 2 }),  // issue #6: 配列や Array も汎用コレクションとして、複合型アサートは行わない。
                 TestCase( 4, x: new DummyStruct[0]   , y: new List<DummyStruct>()), // issue #7: System 名前空間かどうかは配列判定に関係なかったので、適切な配列判定に修正。
                 TestCase( 5, x: new Dictionary<int, int>{ { 1, 2 } }, y: new Dictionary<int, int>{ { 1, 2 } }),  // issue #8: Dictionary<> のような型引数と要素型が一致しないコレクションでも、各要素を要素型で等値アサートできる。
+                TestCase( 6, x: new CirculatedClass()               , y: new CirculatedClass()               ),  // issue #9: 循環参照しているデータ メンバーは循環先のパスで比較。
+                TestCase( 7, x: new { Obj = new CirculatedClass() } , y: new { Obj = new CirculatedClass() } ),  // issue #9: 循環参照しているデータ メンバーは循環先のパスで比較。
             }.Invoke();
         }
 
@@ -205,6 +209,10 @@ namespace Inasync.Tests {
             public int ReadOnlyProperty { get; }
             public int ReadWriteProperty { get; set; }
             public int WriteProperty { set { } }
+        }
+
+        private class CirculatedClass {
+            public CirculatedClass Self => this;
         }
 
         #endregion Helper
