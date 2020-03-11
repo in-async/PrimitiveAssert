@@ -115,6 +115,8 @@ namespace Inasync.Tests {
                 TestCase( 3, target: fooType           , x:dummy, y:dummy               , expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。DummyClass 値は {Foo:int} 匿名型を (ダック的に) 満たしていない。
                 TestCase(10, target: readOnlyFieldType , x:dummy, y:DummyClass()        ),
                 TestCase(11, target: readOnlyFieldType , x:dummy, y:new{ReadOnlyField=1}),
+                TestCase(12, target: typeof(object)    , x:dummy, y:new{}               ),  // issue #10: ターゲット型が object の場合データ メンバーが存在しない為、実質検証なし。
+                TestCase(13, target: typeof(object)    , x:dummy, y:new{Foo=0}          ),  // issue #10: ターゲット型が object の場合データ メンバーが存在しない為、実質検証なし。
 
                 TestCase(50, target: typeof(IList<int>[]), x:new[]{new List<int>{1,2}, new List<int>{3}}, y:new[]{new[]{1,2}, new[]{3}}),
             }.Invoke();
