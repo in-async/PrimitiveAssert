@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Commons;
 
 namespace Inasync {
 
@@ -60,7 +61,7 @@ namespace Inasync {
         /// </summary>
         public static IEnumerable<DataMember> GetDataMembers(this Type type) {
             var props = (
-                from prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                from prop in type.GetPropertiesEx(BindingFlags.Instance | BindingFlags.Public)
                 where prop.GetIndexParameters().Length == 0
                 where prop.GetGetMethod() != null
                 select new DataMember(prop)
@@ -78,7 +79,7 @@ namespace Inasync {
         /// 指定した名前の、インスタンスかつパブリックな <see cref="DataMember"/> を探します。
         /// </summary>
         public static bool TryGetDataMember(this Type type, string name, out DataMember result) {
-            var prop = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
+            var prop = type.GetPropertyEx(name, BindingFlags.Instance | BindingFlags.Public);
             if (prop != null) {
                 result = new DataMember(prop);
                 return true;
