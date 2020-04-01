@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using Commons;
 
 namespace Inasync {
@@ -13,6 +14,7 @@ namespace Inasync {
             _logger = logger;
         }
 
+        /// <exception cref="ArgumentException">ターゲット型に同じ名前のデータメンバーが 2 つ以上存在します。</exception>
         public void AssertIs(AssertNode node) {
             var targetType = node.TargetType;
             var actual = node.Actual;
@@ -131,6 +133,7 @@ namespace Inasync {
             return false;
         }
 
+        /// <exception cref="ArgumentException">ターゲット型に同じ名前のデータメンバーが 2 つ以上存在します。</exception>
         private bool TryCompositeAssertIs(Type targetType, object actual, object expected, AssertNode node) {
             targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
@@ -151,10 +154,21 @@ namespace Inasync {
                 return true;
             }
 
+            // ターゲット型に同じ名前のデータメンバーが含まれていない事をチェック。
+            // 同じ名前のデータメンバーが 2 つ以上存在する場合、アサート対象を解決できない為 (CS0229 相当)。
+            var targetDataMembers = targetType.GetDataMembers().ToArray();
+            var duplicateMember = targetDataMembers.ToLookup(x => x.Name).FirstOrDefault(g => g.Count() > 1);
+            if (duplicateMember != null) {
+                var duplicateMemberNames = duplicateMember.Select(x => $"'{x.DeclaringType.Name}.{x.Name}'");
+                throw new ArgumentException(message: $"ターゲット型 '{targetType.Name}' に含まれる {string.Join(" と ", duplicateMemberNames)} があいまいです。");
+            }
+
             // 各データ メンバーの比較
-            foreach (var member in targetType.GetDataMembers()) {
-                if (!actualType.TryGetDataMember(member.Name, out var actualMember)) { throw new PrimitiveAssertFailedException(node, $"actual にデータ メンバー {member.Name} が見つかりません。", _message); }
-                if (!expectedType.TryGetDataMember(member.Name, out var expectedMember)) { throw new PrimitiveAssertFailedException(node, $"expected にデータ メンバー {member.Name} が見つかりません。", _message); }
+            var actualMemberMap = actualType.GetDataMembers().ToDictionary(x => x.Name);
+            var expectedMemberMap = expectedType.GetDataMembers().ToDictionary(x => x.Name);
+            foreach (var member in targetDataMembers) {
+                if (!actualMemberMap.TryRemove(member.Name, out var actualMember)) { throw new PrimitiveAssertFailedException(node, $"actual にデータ メンバー {member.Name} が見つかりません。", _message); }
+                if (!expectedMemberMap.TryRemove(member.Name, out var expectedMember)) { throw new PrimitiveAssertFailedException(node, $"expected にデータ メンバー {member.Name} が見つかりません。", _message); }
 
                 var actualMemberValue = actualMember.GetValue(actual);
                 var expectedMemberValue = expectedMember.GetValue(expected);

@@ -12,12 +12,14 @@ namespace Inasync {
 
         public readonly string Name;
         public readonly Type DataType;
+        public readonly Type DeclaringType;
 
         public DataMember(PropertyInfo prop) {
             _prop = prop;
             _field = null;
             Name = prop.Name;
             DataType = prop.PropertyType;
+            DeclaringType = prop.DeclaringType;
         }
 
         public DataMember(FieldInfo field) {
@@ -25,6 +27,7 @@ namespace Inasync {
             _field = field;
             Name = field.Name;
             DataType = field.FieldType;
+            DeclaringType = field.DeclaringType;
         }
 
         public object GetValue(object? obj) {

@@ -19,6 +19,7 @@ namespace Inasync {
                 || type == typeof(float)
                 || type == typeof(double)
                 || type == typeof(decimal)
+                || type == typeof(Numeric)
                 || Nullable.GetUnderlyingType(type) is Type underingType && IsNumeric(underingType)
                 ;
         }
