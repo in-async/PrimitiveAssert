@@ -187,8 +187,12 @@ namespace Inasync.Tests {
                 TestCase( 5, x: new Dictionary<int, int>{ { 1, 2 } }, y: new Dictionary<int, int>{ { 1, 2 } }),  // issue #8: Dictionary<> のような型引数と要素型が一致しないコレクションでも、各要素を要素型で等値アサートできる。
                 TestCase( 6, x: new CirculatedClass()               , y: new CirculatedClass()               ),  // issue #9: 循環参照しているデータ メンバーは循環先のパスで比較。
                 TestCase( 7, x: new { Obj = new CirculatedClass() } , y: new { Obj = new CirculatedClass() } ),  // issue #9: 循環参照しているデータ メンバーは循環先のパスで比較。
-                TestCase( 8, x: (IDerived)new Derived{ V0 = 0, V1 = 1 }, y: new {         V1 = 1 }, expectedException: typeof(PrimitiveAssertFailedException)),  // issue #15: expected が IDerived のデータメンバーを全て実装していないので失敗すべき。
-                TestCase( 9, x: (IDerived)new Derived{ V0 = 0, V1 = 1 }, y: new { V0 = 0, V1 = 1 }),
+                TestCase( 8, x: (IBase)   new Derived{ V0 = 0, V1 = 1 }, y: new { V0 = 0         }),
+                TestCase( 9, x: (IDerived)new Derived{ V0 = 0, V1 = 1 }, y: new { V0 = 0         }, expectedException: typeof(PrimitiveAssertFailedException)),  // issue #15: expected が IDerived のデータメンバーを全て実装していないので失敗すべき。
+                TestCase(10, x: (IDerived)new Derived{ V0 = 0, V1 = 1 }, y: new {         V1 = 1 }, expectedException: typeof(PrimitiveAssertFailedException)),  // issue #15: expected が IDerived のデータメンバーを全て実装していないので失敗すべき。
+                TestCase(11, x: (IDerived)new Derived{ V0 = 0, V1 = 1 }, y: new { V0 = 0, V1 = 1 }),
+                TestCase(12, x: new{ Foo=1 }, y: new{ Foo=1m }),
+                TestCase(13, x: new{ Foo=1 }, y: new{ Foo=2m }, expectedException: typeof(PrimitiveAssertFailedException)),
             }.Invoke();
         }
 

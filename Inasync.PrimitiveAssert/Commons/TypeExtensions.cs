@@ -55,21 +55,5 @@ namespace Commons {
                    .SelectMany(x => x.GetProperties(bindingAttr))
                    ;
         }
-
-        /// <summary>
-        /// 指定された型が備える任意のプロパティを返します。
-        /// <paramref name="type"/> がインターフェースの場合は、そのインターフェースが実装する全てのインターフェースのプロパティも含みます。
-        /// </summary>
-        /// <remarks>https://stackoverflow.com/questions/358835/getproperties-to-return-all-properties-for-an-interface-inheritance-hierarchy/26766221#26766221</remarks>
-        public static PropertyInfo GetPropertyEx(this Type type, string name, BindingFlags bindingAttr) {
-            if (!type.IsInterface) {
-                return type.GetProperty(name, bindingAttr);
-            }
-
-            return new[] { type }
-                   .Concat(type.GetInterfaces())
-                   .Select(x => x.GetProperty(name, bindingAttr))
-                   .FirstOrDefault(x => x != null);
-        }
     }
 }
