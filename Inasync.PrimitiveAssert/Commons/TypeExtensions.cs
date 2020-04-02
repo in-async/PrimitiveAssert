@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Commons {
 
@@ -37,6 +38,22 @@ namespace Commons {
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// 指定された型が備えるプロパティを全て返します。
+        /// <paramref name="type"/> がインターフェースの場合は、そのインターフェースが実装する全てのインターフェースのプロパティも含みます。
+        /// </summary>
+        /// <remarks>https://stackoverflow.com/questions/358835/getproperties-to-return-all-properties-for-an-interface-inheritance-hierarchy/26766221#26766221</remarks>
+        public static IEnumerable<PropertyInfo> GetPropertiesEx(this Type type, BindingFlags bindingAttr) {
+            if (!type.IsInterface) {
+                return type.GetProperties(bindingAttr);
+            }
+
+            return new[] { type }
+                   .Concat(type.GetInterfaces())
+                   .SelectMany(x => x.GetProperties(bindingAttr))
+                   ;
         }
     }
 }

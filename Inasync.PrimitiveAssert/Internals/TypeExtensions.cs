@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Commons;
 
 namespace Inasync {
 
@@ -58,40 +59,26 @@ namespace Inasync {
         /// <summary>
         /// インスタンスかつパブリックな <see cref="DataMember"/> の一覧を返します。
         /// </summary>
+        /// <remarks>
+        /// 多重継承したインターフェース等が指定された場合に、同じ名前のデータメンバーが列挙される可能性があります。
+        /// これを一意に識別する場合は、宣言された型 (DeclaringType) も併せて識別子として下さい。
+        /// </remarks>
         public static IEnumerable<DataMember> GetDataMembers(this Type type) {
+            const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public;
+
             var props = (
-                from prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                from prop in type.GetPropertiesEx(bindingFlags)
                 where prop.GetIndexParameters().Length == 0
                 where prop.GetGetMethod() != null
                 select new DataMember(prop)
             );
 
             var fields = (
-                from field in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                from field in type.GetFields(bindingFlags)
                 select new DataMember(field)
             );
 
             return props.Concat(fields);
-        }
-
-        /// <summary>
-        /// 指定した名前の、インスタンスかつパブリックな <see cref="DataMember"/> を探します。
-        /// </summary>
-        public static bool TryGetDataMember(this Type type, string name, out DataMember result) {
-            var prop = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
-            if (prop != null) {
-                result = new DataMember(prop);
-                return true;
-            }
-
-            var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public);
-            if (field != null) {
-                result = new DataMember(field);
-                return true;
-            }
-
-            result = default;
-            return false;
         }
 
         /// <summary>
