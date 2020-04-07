@@ -37,7 +37,6 @@ namespace Inasync {
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         /// <exception cref="ArgumentException">ターゲット型に同じ名前のデータメンバーが 2 つ以上存在します。</exception>
-        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         public static void AssertIs<TTarget>(this object? actual, object? expected, string? message = null) {
             actual.AssertIs(typeof(TTarget), expected, message);
         }
@@ -52,7 +51,6 @@ namespace Inasync {
         /// <param name="message">検証に失敗した際に、例外に含まれるメッセージ。</param>
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         /// <exception cref="ArgumentException">ターゲット型に同じ名前のデータメンバーが 2 つ以上存在します。</exception>
-        /// <remarks><paramref name="actual"/> と <paramref name="expected"/> に対して対称式となります。</remarks>
         public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
             var assert = new AssertIsImpl(message, ConsoleLogging ? _consoleLogger : null);
             assert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null));

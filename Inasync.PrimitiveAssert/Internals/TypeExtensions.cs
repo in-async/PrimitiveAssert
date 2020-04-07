@@ -88,7 +88,7 @@ namespace Inasync {
             if (duckType.IsAssignableFrom(type)) { return true; }
 
             var targetMembers = type.GetDataMembers().Select(x => x.Name);
-            var duckMemberSet = new HashSet<string>(duckType.GetDataMembers().Select(x => x.Name));
+            var duckMemberSet = duckType.GetDataMembers().Select(x => x.Name).ToHashSet();
             return duckMemberSet.IsSubsetOf(targetMembers);
         }
     }

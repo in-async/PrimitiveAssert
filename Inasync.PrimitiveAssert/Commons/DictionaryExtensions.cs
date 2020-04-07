@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Inasync {
+namespace Commons {
 
     internal static class DictionaryExtensions {
 
