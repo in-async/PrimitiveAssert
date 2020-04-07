@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Inasync.Tests {
@@ -146,6 +147,13 @@ namespace Inasync.Tests {
 
                 IEnumerator IEnumerable.GetEnumerator() => _source.GetEnumerator();
             }
+        }
+
+        [TestMethod]
+        public void Issue20_Test() {
+            var actual = new[] { 1, 3, 2 }.OrderBy(x => x);
+
+            actual.AssertIs(new[] { 1, 2, 3 });
         }
     }
 }

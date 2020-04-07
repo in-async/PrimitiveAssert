@@ -52,6 +52,7 @@ namespace Inasync {
             {
                 "System.Collections" => true,
                 "System.Collections.Generic" => true,
+                "System.Linq" => true,
                 _ => false,
             };
         }
