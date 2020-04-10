@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 
 namespace Inasync {
 
@@ -6,7 +7,6 @@ namespace Inasync {
     /// ターゲットを基本データ型に分解して比較します。
     /// </summary>
     public static class PrimitiveAssert {
-        private static readonly Action<string> _consoleLogger = x => Console.WriteLine(x);
 
         /// <summary>
         /// Assert のログをコンソールに出力するかどうか。
@@ -52,8 +52,31 @@ namespace Inasync {
         /// <exception cref="PrimitiveAssertFailedException"><paramref name="actual"/> と <paramref name="expected"/> が等価ではありません。</exception>
         /// <exception cref="ArgumentException">ターゲット型に同じ名前のデータメンバーが 2 つ以上存在します。</exception>
         public static void AssertIs(this object? actual, Type? targetType, object? expected, string? message = null) {
-            var assert = new AssertIsImpl(message, ConsoleLogging ? _consoleLogger : null);
-            assert.AssertIs(new AssertNode(memberName: "", targetType: targetType, actual, expected, parent: null));
+            var logger = ConsoleLogging ? new IndentedTextWriter(Console.Out) : null;
+            if (message != null) {
+                logger?.WriteLine(message);
+            }
+            try {
+                var assert = new AssertIsImpl(message, logger);
+                assert.AssertIs(new AssertNode(memberName: nameof(actual), targetType: targetType, actual, expected, parent: null));
+            }
+            catch (PrimitiveAssertFailedException ex) {
+                if (logger != null) {
+                    logger.WriteLine($"-> {ex.GetType().Name}: {ex.Reason}");
+                    if (ex.Node != null) {
+                        logger.WriteLine($"  actual   = {ex.Node.Actual.ToPrimitiveString()}");
+                        logger.WriteLine($"  expected = {ex.Node.Expected.ToPrimitiveString()}");
+                    }
+                }
+                throw;
+            }
+            catch (Exception ex) {
+                logger?.WriteLine($"-> {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+            finally {
+                logger?.WriteLine();
+            }
         }
     }
 }

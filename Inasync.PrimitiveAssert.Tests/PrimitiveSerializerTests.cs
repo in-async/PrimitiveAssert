@@ -29,9 +29,8 @@ namespace Inasync.Tests {
                 LastError = new ApplicationException(),
             };
 
-            var json = x.ToPrimitiveString();
-
-            Console.WriteLine(json);
+            Console.WriteLine(x.ToPrimitiveString(pretty: false));
+            Console.WriteLine(x.ToPrimitiveString(pretty: true));
         }
     }
 }

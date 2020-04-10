@@ -10,8 +10,8 @@ namespace Inasync.Tests {
 
         private static Action TestCase(int testNo, Type? target, object? x, object? y, Type? expectedException = null) => () => {
             TestAA
-                .Act(() => x.AssertIs(target, y))
-                .Assert(expectedException, message: $"No.{testNo}_a");
+                .Act(() => x.AssertIs(target, y, $"No.{testNo}"))
+                .Assert(expectedException, message: $"No.{testNo}");
         };
 
         [TestMethod]

@@ -55,5 +55,27 @@ namespace Commons {
                    .SelectMany(x => x.GetProperties(bindingAttr))
                    ;
         }
+
+        /// <summary>
+        /// 判りやすい型名を返します。
+        /// </summary>
+        /// <param name="type">対象の型。</param>
+        /// <returns><paramref name="type"/> を判別しやすい型名。</returns>
+        public static string GetFriendlyName(this Type type) {
+            if (type.IsGenericType) {
+                string genericTypeName = type.Name.IndexOf('`') switch
+                {
+                    { } i when i >= 0 => type.Name.Remove(i),
+                    _ => type.Name,
+                };
+                return $"{genericTypeName}<{string.Join(", ", type.GetGenericArguments().Select(x => x.GetFriendlyName()))}>";
+            }
+
+            if (type.IsArray) {
+                return type.GetElementType().GetFriendlyName() + "[]";
+            }
+
+            return type.Name;
+        }
     }
 }

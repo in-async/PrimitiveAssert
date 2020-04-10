@@ -13,7 +13,12 @@ namespace Inasync {
         /// <param name="message">エラーを説明するメッセージ。</param>
         public PrimitiveAssertFailedException(string? message) : base(message) { }
 
-        internal PrimitiveAssertFailedException(AssertNode node, string reason, string? message) : base($@"{message}: {reason}
-{node}") { }
+        internal PrimitiveAssertFailedException(AssertNode node, string reason, string? message) : base($"{message}: {reason}{Environment.NewLine}{node}") {
+            Reason = reason;
+            Node = node;
+        }
+
+        internal AssertNode? Node { get; }
+        internal string? Reason { get; }
     }
 }

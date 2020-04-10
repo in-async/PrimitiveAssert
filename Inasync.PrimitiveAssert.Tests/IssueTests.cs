@@ -53,7 +53,7 @@ namespace Inasync.Tests {
 
                 static Action TestCase<T>(int testNo, T x, object y, Type? expectedException = null) => () => {
                     TestAA
-                        .Act(() => x.AssertIs(y))
+                        .Act(() => x.AssertIs(y, $"No.{testNo}"))
                         .Assert(expectedException, message: $"No.{testNo}");
                 };
 
