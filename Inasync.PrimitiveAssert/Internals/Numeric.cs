@@ -48,7 +48,8 @@ namespace Inasync {
         }
 
         public override bool Equals(object? obj) {
-            return obj is Numeric numeric && Equals(numeric);
+            if (obj == null) { return false; }
+            return TryCreate(obj, out var numeric) && Equals(numeric);
         }
 
         public bool Equals(Numeric other) {

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Inasync.Tests {
@@ -50,7 +53,7 @@ namespace Inasync.Tests {
 
                 static Action TestCase<T>(int testNo, T x, object y, Type? expectedException = null) => () => {
                     TestAA
-                        .Act(() => x.AssertIs(y))
+                        .Act(() => x.AssertIs(y, $"No.{testNo}"))
                         .Assert(expectedException, message: $"No.{testNo}");
                 };
 
@@ -94,6 +97,63 @@ namespace Inasync.Tests {
                 string IFoo.Value => _fooValue;
                 string IBar.Value => _barValue;
             }
+        }
+
+        [TestMethod]
+        public void Issue19_Test() {
+            var actual = new {
+                Foo = 1,
+                Bar = 2,
+            };
+
+            TestAA.Act(() => actual.AssertIs(new { Foo = 1 })).Assert<PrimitiveAssertFailedException>();  // expected がターゲット型を満たしていないので失敗
+            TestAA.Act(() => actual.AssertIs(new { Foo = 1, Bar = 2 })).Assert();  // actual と expected が完全一致してるので成功
+            TestAA.Act(() => actual.AssertIs(new { Foo = 1, Bar = 2, Baz = 3 })).Assert<PrimitiveAssertFailedException>();  // expected がターゲット型と完全に一致していないので失敗
+        }
+
+        [TestMethod]
+        public void Issue19_2_Test() => Issue19_2.Test();
+
+        private static class Issue19_2 {
+
+            public static void Test() {
+                static Action TestCase(int testNo, Type targetType, object x, object y, Type? expectedException = null) => () => {
+                    TestAA
+                        .Act(() => x.AssertIs(targetType, y))
+                        .Assert(expectedException, message: $"No.{testNo}");
+                };
+
+                var array = new[] { 1, 2, 3 };
+                var custom = new CustomEnumerable<int>(new[] { 1, 2, 3 });
+                new[] {
+                    TestCase( 0, targetType: typeof(IEnumerable)          , x: array , y: custom, expectedException: typeof(PrimitiveAssertFailedException)),  // 失敗：ターゲット型と expected が一致していない
+                    TestCase( 1, targetType: typeof(IEnumerable)          , x: custom, y: array ),  // 成功
+                    TestCase( 2, targetType: typeof(CustomEnumerable<int>), x: array , y: custom, expectedException: typeof(PrimitiveAssertFailedException)),  // 失敗：actual をターゲット型にダックキャストできない
+                    TestCase( 3, targetType: typeof(CustomEnumerable<int>), x: custom, y: array , expectedException: typeof(PrimitiveAssertFailedException)),  // 失敗：ターゲット型と expected が一致していない
+                    TestCase( 4, targetType: typeof(CustomEnumerable<int>), x: custom, y: custom),  // 成功
+                }.Invoke();
+            }
+
+            private class CustomEnumerable<T> : IEnumerable<T> {
+                private readonly IEnumerable<T> _source;
+
+                public CustomEnumerable(IEnumerable<T> source) {
+                    _source = source ?? throw new ArgumentNullException(nameof(source));
+                }
+
+                public string? CustomValue { get; set; }
+
+                public IEnumerator<T> GetEnumerator() => _source.GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator() => _source.GetEnumerator();
+            }
+        }
+
+        [TestMethod]
+        public void Issue20_Test() {
+            var actual = new[] { 1, 3, 2 }.OrderBy(x => x);
+
+            actual.AssertIs(new[] { 1, 2, 3 });
         }
     }
 }

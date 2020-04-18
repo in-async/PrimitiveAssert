@@ -1,4 +1,5 @@
 ﻿using System;
+using Commons;
 
 namespace Inasync {
 
@@ -12,12 +13,12 @@ namespace Inasync {
             Parent = parent;
 
             if (parent == null) {
-                Path = ".";
+                Path = "actual";
             }
             else {
                 Path = parent.Path + "/" + memberName;
                 if (targetType != null) {
-                    Path += ":" + targetType.Name;
+                    Path += ":" + targetType.GetFriendlyName();
                 }
             }
         }
@@ -31,9 +32,9 @@ namespace Inasync {
 
         public override string ToString() => $@"{{
       path: {Path}
-    target: {TargetType?.FullName ?? "(null)"}
-    actual: {Actual ?? "(null)"}
-  expected: {Expected ?? "(null)"}
+    target: {TargetType.ToPrimitiveString()}
+    actual: {Actual.ToPrimitiveString()}
+  expected: {Expected.ToPrimitiveString()}
 }}";
     }
 }
