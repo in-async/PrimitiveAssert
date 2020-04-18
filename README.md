@@ -88,35 +88,14 @@ PrimitiveAssert.ConsoleLogging = true;
 ```
 とする事で、次のようなログがコンソールに出力されます:
 ```
-{
-      path: ./AccountId:Int32
-    target: System.Int32
-    actual: 123
-  expected: 123
-}
-{
-      path: ./Name:String
-    target: System.String
-    actual: John Smith
-  expected: John Smith
-}
-{
-      path: ./CreatedAt:DateTime
-    target: System.DateTime
-    actual: 2020/03/09 8:15:00
-  expected: 2020/03/09 8:15:00
-}
-{
-      path: ./Tags:IReadOnlyCollection`1/0:String
-    target: System.String
-    actual: Foo
-  expected: Foo
-}
-{
-      path: ./Tags:IReadOnlyCollection`1/1:String
-    target: System.String
-    actual: Bar
-  expected: Bar
+actual: IAccount = {
+    AccountId: Int32 = 123    // actual と expected は数値型として等しいです。
+    Name: String = "John Smith"    // actual と expected は String 型として等しいです。
+    CreatedAt: DateTime = "2020/03/09 8:15:00"    // actual と expected は DateTime 型として等しいです。
+    Tags: IReadOnlyCollection<String> = {
+        [0]: String = "Foo"    // actual と expected は String 型として等しいです。
+        [1]: String = "Bar"    // actual と expected は String 型として等しいです。
+    }
 }
 ```
 
