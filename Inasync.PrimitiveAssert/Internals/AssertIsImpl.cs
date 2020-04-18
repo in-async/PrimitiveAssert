@@ -21,7 +21,7 @@ namespace Inasync {
             var actual = node.Actual;
             var expected = node.Expected;
 
-            _logger?.Write($"{node.MemberName}: {node.TargetType.ToPrimitiveString()} = ");
+            _logger?.Write($"{node.MemberName}: {node.TargetType?.GetFriendlyName() ?? "(null)"} = ");
             try {
                 // null 比較
                 if (targetType is null) {

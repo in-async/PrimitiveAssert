@@ -7,7 +7,7 @@ namespace Inasync.Tests {
     public class PrimitiveSerializerTests {
 
         [TestMethod]
-        public void Usage() {
+        public void ToPrimitiveString_Usage() {
             var x = new {
                 AccountId = new Guid("f5b63bc6-9876-4e07-8400-f06daf3e4212"),
                 FullName = "John Smith",
@@ -27,10 +27,11 @@ namespace Inasync.Tests {
                 Params2 = (ValueTuple<int, string>?)null,
                 Params3 = Tuple.Create(1, "bar"),
                 LastError = new ApplicationException(),
+                StringType = typeof(string),
             };
 
-            Console.WriteLine(x.ToPrimitiveString(pretty: false));
-            Console.WriteLine(x.ToPrimitiveString(pretty: true));
+            Console.WriteLine(x.ToPrimitiveString(indented: false));
+            Console.WriteLine(x.ToPrimitiveString(indented: true));
         }
     }
 }
