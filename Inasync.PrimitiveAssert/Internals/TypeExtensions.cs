@@ -33,6 +33,7 @@ namespace Inasync {
                 || type == typeof(float)
                 || type == typeof(double)
                 || type == typeof(decimal)
+                || type == typeof(Type)
                 || Nullable.GetUnderlyingType(type) is Type underingType && IsPrimitiveData(underingType)
                 ;
         }

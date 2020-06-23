@@ -155,5 +155,20 @@ namespace Inasync.Tests {
 
             actual.AssertIs(new[] { 1, 2, 3 });
         }
+
+        [TestMethod]
+        public void Issue23_Test() {
+            static Action TestCase(int testNo, Type x, Type y, Type? expectedException = null) => () => {
+                TestAA
+                    .Act(() => x.AssertIs(y))
+                    .Assert(expectedException, message: $"No.{testNo}");
+            };
+
+            new[] {
+                TestCase( 0, typeof(Guid)  , typeof(Guid)  ),
+                TestCase( 1, typeof(Guid)  , typeof(string), expectedException: typeof(PrimitiveAssertFailedException)),
+                TestCase( 2, typeof(string), typeof(string)),
+            }.Invoke();
+        }
     }
 }

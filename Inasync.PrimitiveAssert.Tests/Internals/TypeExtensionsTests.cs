@@ -70,7 +70,7 @@ namespace Inasync.Tests {
                 TestCase(109, typeof(Exception)      , expected: false),
                 TestCase(110, typeof(IntPtr)         , expected: false),
                 TestCase(111, typeof(UIntPtr)        , expected: false),
-                TestCase(112, typeof(Type)           , expected: false),
+                TestCase(112, typeof(Type)           , expected: true ),
                 TestCase(113, typeof(Version)        , expected: false),
             }.Invoke();
         }
