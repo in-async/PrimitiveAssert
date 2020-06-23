@@ -41,8 +41,12 @@ namespace Inasync {
         /// <summary>
         /// 汎用コレクションかどうか。
         /// <para>
-        /// ここでの汎用コレクションとは配列、<see cref="Array"/>、
-        /// <see cref="System.Collections"/> または <see cref="System.Collections.Generic"/> 名前空間に属する <see cref="IEnumerable"/> 実装のいずれかを指します。
+        /// ここでの汎用コレクションとは配列、または
+        /// <see cref="System.Collections"/>,
+        /// <see cref="System.Collections.Generic"/>,
+        /// <see cref="System.Collections.Concurrent"/>,
+        /// <see cref="System.Linq"/>,
+        /// のいずれかの名前空間に属する <see cref="IEnumerable"/> 実装を指します。
         /// </para>
         /// </summary>
         public static bool IsSystemCollection(this Type type) {
@@ -53,6 +57,7 @@ namespace Inasync {
             {
                 "System.Collections" => true,
                 "System.Collections.Generic" => true,
+                "System.Collections.Concurrent" => true,
                 "System.Linq" => true,
                 _ => false,
             };

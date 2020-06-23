@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -169,6 +170,12 @@ namespace Inasync.Tests {
                 TestCase( 1, typeof(Guid)  , typeof(string), expectedException: typeof(PrimitiveAssertFailedException)),
                 TestCase( 2, typeof(string), typeof(string)),
             }.Invoke();
+        }
+
+        [TestMethod]
+        public void Issue24_Test() {
+            new ConcurrentQueue<int>(new[] { 1, 2 }).AssertIs(new[] { 1, 2 });
+            new ConcurrentStack<int>(new[] { 1, 2 }).AssertIs(new[] { 2, 1 });
         }
     }
 }
