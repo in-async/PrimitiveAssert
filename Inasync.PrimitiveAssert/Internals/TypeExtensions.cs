@@ -46,6 +46,7 @@ namespace Inasync {
         /// <see cref="System.Collections.Generic"/>,
         /// <see cref="System.Collections.Concurrent"/>,
         /// <see cref="System.Linq"/>,
+        /// <see cref="System.Collections.ObjectModel"/>
         /// のいずれかの名前空間に属する <see cref="IEnumerable"/> 実装を指します。
         /// </para>
         /// </summary>
@@ -59,6 +60,7 @@ namespace Inasync {
                 "System.Collections.Generic" => true,
                 "System.Collections.Concurrent" => true,
                 "System.Linq" => true,
+                "System.Collections.ObjectModel" => true,
                 _ => false,
             };
         }

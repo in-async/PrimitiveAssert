@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -176,6 +177,18 @@ namespace Inasync.Tests {
         public void Issue24_Test() {
             new ConcurrentQueue<int>(new[] { 1, 2 }).AssertIs(new[] { 1, 2 });
             new ConcurrentStack<int>(new[] { 1, 2 }).AssertIs(new[] { 2, 1 });
+        }
+
+        [TestMethod]
+        public void Issue27_Test() {
+            new ReadOnlyCollection<int>(new[] { 1, 2, }).AssertIs(new[] { 1, 2, });
+            new ReadOnlyDictionary<int, string>(new Dictionary<int, string> {
+                { 1, "a" },
+                { 2, "b" },
+            }).AssertIs(new Dictionary<int, string> {
+                { 1, "a" },
+                { 2, "b" },
+            });
         }
     }
 }
