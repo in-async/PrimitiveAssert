@@ -23,6 +23,8 @@ namespace Inasync {
 
             _logger?.Write($"{node.MemberName}: {node.TargetType?.GetFriendlyName() ?? "(null)"} = ");
             try {
+                if (TryPredicateAssertIs(targetType, actual, expected, node)) { return; }
+
                 // null 比較
                 if (targetType is null) {
                     if (!(actual is null)) { throw new PrimitiveAssertFailedException(node, "ターゲット型は null ですが、actual は非 null です。", _message); }
@@ -77,6 +79,30 @@ EndBlock:
                 _logger.Write("    // " + additionalMessage);
             }
             _logger.WriteLine();
+        }
+
+        private bool TryPredicateAssertIs(Type? targetType, object? actual, object? expected, AssertNode node) {
+            if (expected is null) { return false; }
+
+            if (expected is AssertPredicate predicate) {
+                if (!predicate(actual)) { throw new PrimitiveAssertFailedException(node, "actual はカスタム条件に一致しませんでした。", _message); }
+
+                WriteLog(node, "actual はカスタム条件に一致しました。");
+                return true;
+            }
+
+            Type expectedType = expected.GetType();
+            if (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(AssertPredicate<>)) {
+                Type genericType = expectedType.GetGenericArguments()[0];
+
+                if (!genericType.IsAssignableFrom(actual?.GetType())) { throw new PrimitiveAssertFailedException(node, "actual はカスタム条件の型引数にキャストできませんでした。", _message); }
+                if (!(bool)expectedType.GetMethod("Invoke").Invoke(expected, new[] { actual })) { throw new PrimitiveAssertFailedException(node, "actual はカスタム条件に一致しませんでした。", _message); }
+
+                WriteLog(node, "actual はカスタム条件に一致しました。");
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryNumericAssertIs(Type targetType, object actual, object expected, AssertNode node) {

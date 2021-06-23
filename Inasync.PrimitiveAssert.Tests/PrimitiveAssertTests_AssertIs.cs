@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Inasync.Tests {
@@ -46,6 +47,19 @@ namespace Inasync.Tests {
                 TestCase( 0, target: null          , x: obj, y: obj, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。null 型には null のみが許容される。
                 TestCase( 1, target: typeof(string), x: obj, y: obj, expectedException: typeof(PrimitiveAssertFailedException)),  // ターゲット型違反。string 型に object 値は割り当てられない。
                 TestCase( 2, target: typeof(object), x: obj, y: obj),
+            }.Invoke();
+        }
+
+        [TestMethod]
+        public void AssertIs_Predicate() {
+            var targetType = new Type?[] { null, typeof(DummyStruct), typeof(DummyClass) }.OrderBy(x => Guid.NewGuid()).First();
+            var obj = "foo";
+            new[] {
+                TestCase( 0, target: targetType, x: obj, y: new AssertPredicate(x => true)            ),
+                TestCase( 1, target: targetType, x: obj, y: new AssertPredicate(x => false)           , expectedException: typeof(PrimitiveAssertFailedException)),  // アサート条件が false。
+                TestCase(10, target: targetType, x: obj, y: new AssertPredicate<string>(x => true)    ),
+                TestCase(11, target: targetType, x: obj, y: new AssertPredicate<object>(x => true)    ),
+                TestCase(12, target: targetType, x: obj, y: new AssertPredicate<DummyClass>(x => true), expectedException: typeof(PrimitiveAssertFailedException)),  // actual は DummyClass にキャストできない。
             }.Invoke();
         }
 
