@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Inasync.Tests {
@@ -96,6 +97,37 @@ namespace Inasync.Tests {
                 Name = "John Smith",
             });
         }
+
+#if !NET461
+
+        [TestMethod]
+        public void Usage7() {
+            using ECDsa ecdsa = ECDsa.Create();
+            ecdsa.GenerateKey(ECCurve.NamedCurves.nistP256);
+
+            var message = new byte[] { 1, 2, 3 };
+            byte[] signature = ecdsa.SignData(message, HashAlgorithmName.SHA256);
+
+            var actual = new {
+                Id = 123,
+                CreatedAt = DateTime.Now,
+                Details = new {
+                    Age = 25,
+                    Signature = signature,
+                },
+            };
+
+            actual.AssertIs(new {
+                Id = 123,
+                CreatedAt = new AssertPredicate(x => true),  // Ignore assert
+                Details = new {
+                    Age = new AssertPredicate<int>(x => x > 20),
+                    Signature = new AssertPredicate<byte[]>(x => ecdsa.VerifyData(message, signature: x, HashAlgorithmName.SHA256)),
+                },
+            });
+        }
+
+#endif
 
         #region Helpers
 
