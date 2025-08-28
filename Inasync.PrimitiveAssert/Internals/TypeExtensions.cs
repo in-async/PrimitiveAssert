@@ -47,12 +47,22 @@ namespace Inasync {
         /// <see cref="System.Collections.Concurrent"/>,
         /// <see cref="System.Linq"/>,
         /// <see cref="System.Collections.ObjectModel"/>
-        /// のいずれかの名前空間に属する <see cref="IEnumerable"/> 実装を指します。
+        /// のいずれかの名前空間に属する <see cref="IEnumerable"/> 実装、
+        /// またはコレクション式によって生成された型を指します。
         /// </para>
         /// </summary>
         public static bool IsSystemCollection(this Type type) {
             if (!typeof(IEnumerable).IsAssignableFrom(type)) { return false; }
             if (typeof(Array).IsAssignableFrom(type)) { return true; }
+
+            // コレクション式によって生成されたか
+            // ref. https://github.com/dotnet/roslyn/blob/8e3d84569a17786744edc314614a99800ec3fd1f/src/Compilers/CSharp/Portable/Symbols/Synthesized/ReadOnlyListType/SynthesizedReadOnlyListTypeSymbol.cs#L18-L41
+            switch (type.Name) {
+                case "<>z__ReadOnlyArray`1":
+                case "<>z__ReadOnlyList`1":
+                case "<>z__ReadOnlySingleElementList`1":
+                    return true;
+            }
 
             return type.Namespace switch
             {
