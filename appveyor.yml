@@ -1,5 +1,5 @@
 ﻿version: ci-{build}-{branch}
-image: Visual Studio 2019
+image: Visual Studio 2022
 configuration: Release
 nuget:
   project_feed: true
@@ -11,11 +11,11 @@ build:
 deploy:
 - provider: GitHub
   auth_token:
-    secure: eHI+nPFCmnPOdRRPRhGQBso/RlA5seuhkPBRgOMbGWDHzNWw+Us1FJrR7TTBLVR0
+    secure: NeoBaL3ljt1UQyNl7Hub8KJc1VzXMq2WLQWrkjYPme4GKdb8EUhRa0xk/DfWS0EJx6+yZUtxua36Cig+6sGkZ9jMVu4FlD6QveEDIk+Enma5EN/GYFM7Ff5XZUIoKFn8
   on:
     appveyor_repo_tag: true
 - provider: NuGet
   api_key:
-    secure: ccm+uv1mL5n9OdO3gu9MZdUIFnVws0G8cjiVQdO1o2ZzhTsXpbuJW+Iz+D1SlqcF
+    secure: Yd1KGy9i5TSWpsXDmgUc8uqDLromNzhM2eHUgSwaL/CgjlTgnjJFFW9+QtUy3HuB
   on:
     appveyor_repo_tag: true

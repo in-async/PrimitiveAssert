@@ -190,5 +190,35 @@ namespace Inasync.Tests {
                 { 2, "b" },
             });
         }
+
+        [TestMethod]
+        public void Issue32_ReadOnlySingleElementList() {
+            int[] array = new[] { 1 };
+            IEnumerable<int> collection = [1];
+
+            Assert.AreEqual("<>z__ReadOnlySingleElementList`1", collection.GetType().Name);
+            array.AssertIs(collection);
+            collection.AssertIs(array);
+        }
+
+        [TestMethod]
+        public void Issue32_ReadOnlyArray() {
+            int[] array = new[] { 1, 2 };
+            IEnumerable<int> collection = [1, 2];
+
+            Assert.AreEqual("<>z__ReadOnlyArray`1", collection.GetType().Name);
+            array.AssertIs(collection);
+            collection.AssertIs(array);
+        }
+
+        [TestMethod]
+        public void Issue32_ReadOnlyList() {
+            int[] array = new[] { 1, 2 };
+            IEnumerable<int> collection = [.. Enumerable.Range(1, 2)];
+
+            Assert.AreEqual("<>z__ReadOnlyList`1", collection.GetType().Name);
+            array.AssertIs(collection);
+            collection.AssertIs(array);
+        }
     }
 }
